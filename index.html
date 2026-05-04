@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Importaciones Juanita</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     Importaciones Juanita - Bloque 1
+     Login + Dashboard (inspirado en Telaio ERP)
+     ============================================ */
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F8F9FA;
+    color: #1F2937;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  input { font-family: inherit; }
+  a { color: inherit; text-decoration: none; }
+
+  /* Variables */
+  :root {
+    --primary: #6366F1;
+    --primary-light: #EEF2FF;
+    --primary-hover: #4F46E5;
+    --secondary: #10B981;
+    --bg: #F8F9FA;
+    --card-bg: #FFFFFF;
+    --border: #E5E7EB;
+    --text: #1F2937;
+    --text-muted: #6B7280;
+    --text-light: #9CA3AF;
+    --danger: #EF4444;
+    --warning: #F59E0B;
+    --success: #10B981;
+    --info: #3B82F6;
+    --shadow: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  /* ===== LOGIN ===== */
+  .pantalla-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #F8F9FA 0%, #EEF2FF 100%);
+    padding: 20px;
+  }
+  .card-login {
+    width: 100%;
+    max-width: 420px;
+    background: #FFFFFF;
+    padding: 40px 36px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+  .logo-grande {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+  .logo-cuadro {
+    width: 56px; height: 56px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+  }
+  .titulo-login {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: var(--text);
+  }
+  .subtitulo-login {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0;
+    text-align: center;
+  }
+  .grupo-input {
+    margin-bottom: 16px;
+  }
+  .grupo-input label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .input-texto, .input-password-wrap input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--text);
+    transition: border-color .15s, box-shadow .15s;
+    outline: none;
+  }
+  .input-texto:focus, .input-password-wrap input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  }
+  .input-password-wrap {
+    position: relative;
+  }
+  .ojo-btn {
+    position: absolute;
+    right: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    padding: 4px;
+    font-size: 16px;
+  }
+  .btn-primario {
+    width: 100%;
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 8px;
+    transition: background .15s;
+  }
+  .btn-primario:hover { background: var(--primary-hover); }
+  .btn-primario:disabled { opacity: .6; cursor: not-allowed; }
+  .mensaje-error {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: #FEF2F2;
+    color: var(--danger);
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+  }
+  .mensaje-error.visible { display: block; }
+
+  /* ===== LAYOUT PRINCIPAL ===== */
+  .app-layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    padding: 18px 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px 22px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo .logo-cuadro {
+    width: 36px; height: 36px;
+    font-size: 14px;
+    margin-bottom: 0;
+    border-radius: 8px;
+  }
+  .sidebar-logo .marca {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .sidebar-logo .marca .azul { color: var(--primary); display: block; font-weight: 700; }
+  .sidebar-grupo {
+    padding: 14px 0 6px;
+  }
+  .sidebar-grupo-titulo {
+    padding: 0 18px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-light);
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    position: relative;
+    transition: background .12s, color .12s;
+  }
+  .sidebar-item:hover { background: #F5F5F5; }
+  .sidebar-item.activo {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-left-color: var(--primary);
+  }
+  .sidebar-item .icono { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-item .badge-rojo {
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: auto;
+  }
+
+  /* Header */
+  .contenido {
+    margin-left: 220px;
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    height: 60px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky; top: 0;
+    z-index: 5;
+  }
+  .header-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .header-derecha {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+  }
+  .icono-campana {
+    position: relative;
+    font-size: 18px;
+    padding: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .icono-campana:hover { background: #F5F5F5; }
+  .badge-noti {
+    position: absolute;
+    top: -2px; right: -2px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+  }
+  .avatar-usuario {
+    width: 36px; height: 36px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .dropdown-usuario {
+    position: absolute;
+    right: 0; top: 48px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    min-width: 180px;
+    overflow: hidden;
+    display: none;
+    z-index: 20;
+  }
+  .dropdown-usuario.visible { display: block; }
+  .dropdown-usuario .item {
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+  }
+  .dropdown-usuario .item:hover { background: #F5F5F5; }
+  .dropdown-usuario .item.salir { color: var(--danger); border-top: 1px solid var(--border); }
+
+  .area-modulo { flex: 1; padding: 24px; }
+
+  /* ===== DASHBOARD ===== */
+  .saludo-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .saludo h2 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .saludo p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13.5px;
+  }
+  .fecha-hoy {
+    color: var(--text-muted);
+    font-size: 13px;
+    text-transform: capitalize;
+  }
+  .grid-metricas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 1024px) { .grid-metricas { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px)  { .grid-metricas { grid-template-columns: 1fr; } }
+  .tarjeta {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+  }
+  .tarjeta-metrica {
+    cursor: pointer;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .tarjeta-metrica:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .metrica-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .metrica-icono {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .ico-naranja { background: #FFF7ED; color: #F97316; }
+  .ico-azul    { background: #EFF6FF; color: var(--info); }
+  .ico-verde   { background: #ECFDF5; color: var(--success); }
+  .ico-indigo  { background: var(--primary-light); color: var(--primary); }
+  .metrica-titulo { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+  .metrica-numero { font-size: 28px; font-weight: 700; color: var(--text); }
+  .metrica-comp { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .metrica-comp.subir { color: var(--success); }
+  .metrica-comp.bajar { color: var(--danger); }
+
+  /* Tablas */
+  .tarjeta-titulo {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 14px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .tabla th {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tabla td {
+    padding: 12px;
+    border-bottom: 1px solid #F3F4F6;
+    color: var(--text);
+  }
+  .tabla tr.clickable { cursor: pointer; }
+  .tabla tr.clickable:hover { background: #FAFBFC; }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .badge.verde   { background: #ECFDF5; color: #047857; }
+  .badge.amarillo { background: #FEF3C7; color: #92400E; }
+  .badge.rojo    { background: #FEF2F2; color: #B91C1C; }
+  .badge.azul    { background: #EFF6FF; color: #1D4ED8; }
+  .badge.gris    { background: #F3F4F6; color: #4B5563; }
+  .dias-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .dias-pill.verde   { background: #ECFDF5; color: #047857; }
+  .dias-pill.amarillo { background: #FEF3C7; color: #92400E; }
+  .dias-pill.rojo    { background: #FEF2F2; color: #B91C1C; }
+
+  /* Pedidos por aprobar */
+  .lista-aprobar { display: flex; flex-direction: column; gap: 10px; }
+  .item-aprobar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #FFFBF5;
+    flex-wrap: wrap;
+  }
+  .item-aprobar .info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .item-aprobar .folio {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13.5px;
+  }
+  .item-aprobar .meta {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .item-aprobar .acciones { display: flex; gap: 8px; }
+  .btn-mini {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #fff;
+  }
+  .btn-mini.aprobar { background: var(--success); }
+  .btn-mini.aprobar:hover { background: #059669; }
+  .btn-mini.rechazar { background: var(--danger); }
+  .btn-mini.rechazar:hover { background: #DC2626; }
+
+  /* Próximas entregas */
+  .lista-entregas { display: flex; flex-direction: column; gap: 10px; }
+  .item-entrega {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+  }
+  .item-entrega .fecha {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 14px;
+    min-width: 80px;
+    text-transform: capitalize;
+  }
+  .item-entrega .info { flex: 1; }
+  .item-entrega .folio-tipo { font-size: 13px; font-weight: 600; }
+  .item-entrega .cliente { font-size: 12px; color: var(--text-muted); }
+
+  /* Alertas */
+  .lista-alertas { display: flex; flex-direction: column; gap: 8px; }
+  .item-alerta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    border-left: 3px solid;
+  }
+  .item-alerta.warn { background: #FFFBEB; border-color: var(--warning); color: #92400E; }
+  .item-alerta.danger { background: #FEF2F2; border-color: var(--danger); color: #B91C1C; }
+  .item-alerta:hover { filter: brightness(0.97); }
+
+  /* Grid de 2 columnas para dashboard */
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  @media (max-width: 1024px) { .grid-2col { grid-template-columns: 1fr; } }
+
+  /* Loading */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid #E5E7EB;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: girar 0.7s linear infinite;
+    display: inline-block;
+  }
+  .spinner.grande { width: 32px; height: 32px; border-width: 3px; }
+  .cargando-centro {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 30px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  @keyframes girar { to { transform: rotate(360deg); } }
+
+  .vacio {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 24px;
+    font-size: 13px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 80vh;
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+  .modal-cerrar {
+    color: var(--text-muted);
+    font-size: 20px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .modal-cerrar:hover { background: #F5F5F5; }
+  .modal-body { padding: 18px 22px; }
+
+  /* Panel lateral (detalle pedido) */
+  .panel-lateral-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.4);
+    z-index: 40;
+    display: none;
+  }
+  .panel-lateral-overlay.visible { display: block; }
+  .panel-lateral {
+    position: fixed;
+    right: 0; top: 0; bottom: 0;
+    width: 420px;
+    max-width: 90vw;
+    background: #fff;
+    box-shadow: -8px 0 24px rgba(0,0,0,0.08);
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    z-index: 41;
+    overflow: auto;
+  }
+  .panel-lateral.visible { transform: translateX(0); }
+  .panel-lateral-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0;
+    background: #fff;
+  }
+  .panel-lateral-body { padding: 20px 22px; }
+  .panel-lateral-body .campo {
+    margin-bottom: 14px;
+  }
+  .panel-lateral-body .campo label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-light);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .panel-lateral-body .campo .valor {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Responsive sidebar */
+  .menu-toggle { display: none; }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform .25s; box-shadow: 2px 0 12px rgba(0,0,0,0.1); }
+    .sidebar.abierto { transform: translateX(0); }
+    .contenido { margin-left: 0; }
+    .menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      font-size: 18px;
+      margin-right: 8px;
+    }
+    .menu-toggle:hover { background: #F5F5F5; }
+  }
+
+  /* Modulo placeholder */
+  .modulo-placeholder {
+    background: #fff;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .modulo-placeholder .icono-grande {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .modulo-placeholder h3 { margin: 0 0 6px 0; color: var(--text); font-weight: 600; }
+  .modulo-placeholder p { margin: 0; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ===== PANTALLA DE LOGIN ===== -->
+<div id="pantalla-login" class="pantalla-login">
+  <div class="card-login">
+    <div class="logo-grande">
+      <div class="logo-cuadro">IJ</div>
+      <h1 class="titulo-login">Importaciones Juanita</h1>
+      <p class="subtitulo-login">Sistema de gesti&oacute;n de producci&oacute;n textil</p>
+    </div>
+
+    <form id="form-login" autocomplete="on">
+      <div class="grupo-input">
+        <label for="email-login">Correo electr&oacute;nico</label>
+        <input type="email" id="email-login" class="input-texto" value="jonzarur@gmail.com" required />
+      </div>
+      <div class="grupo-input">
+        <label for="password-login">Contrase&ntilde;a</label>
+        <div class="input-password-wrap">
+          <input type="password" id="password-login" required />
+          <button type="button" class="ojo-btn" id="btn-ojo" aria-label="Mostrar contrase&ntilde;a">&#128065;</button>
+        </div>
+      </div>
+      <button type="submit" id="btn-entrar" class="btn-primario">Entrar</button>
+      <div id="error-login" class="mensaje-error"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== APP PRINCIPAL (oculta hasta login) ===== -->
+<div id="app-principal" class="app-layout" style="display:none;">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-cuadro">IJ</div>
+      <div class="marca">
+        <span>Importaciones</span>
+        <span class="azul">Juanita</span>
+      </div>
+    </div>
+    <nav id="nav-sidebar"><!-- Navegaci&oacute;n se renderiza por JS --></nav>
+  </aside>
+
+  <!-- CONTENIDO -->
+  <div class="contenido">
+    <header class="header">
+      <div style="display:flex; align-items:center;">
+        <button class="menu-toggle" id="btn-menu-toggle" aria-label="Abrir men&uacute;">&#9776;</button>
+        <div class="header-titulo" id="header-titulo">Dashboard</div>
+      </div>
+      <div class="header-derecha">
+        <div class="icono-campana" id="btn-campana" title="Notificaciones">
+          &#128276;
+          <span class="badge-noti" id="badge-noti" style="display:none;">0</span>
+        </div>
+        <div class="avatar-usuario" id="avatar-usuario" title="Mi cuenta">U</div>
+        <div class="dropdown-usuario" id="dropdown-usuario">
+          <div class="item">Mi perfil</div>
+          <div class="item salir" id="btn-cerrar-sesion">Cerrar sesi&oacute;n</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="area-modulo" id="area-modulo">
+      <!-- Contenido del m&oacute;dulo activo -->
+    </main>
+  </div>
+</div>
+
+<!-- Modal gen&eacute;rico -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-titulo">T&iacute;tulo</h3>
+      <button class="modal-cerrar" id="modal-cerrar">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Panel lateral (detalle pedido) -->
+<div class="panel-lateral-overlay" id="panel-overlay"></div>
+<aside class="panel-lateral" id="panel-lateral">
+  <div class="panel-lateral-header">
+    <h3 id="panel-titulo">Detalle del pedido</h3>
+    <button class="modal-cerrar" id="panel-cerrar">&times;</button>
+  </div>
+  <div class="panel-lateral-body" id="panel-body"></div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================
+   CONFIGURACI&Oacute;N SUPABASE
+   ============================================ */
+const SUPABASE_URL = 'https://sugyidlbiudqrbzfwify.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1Z3lpZGxiaXVkcXJiemZ3aWZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDc2OTUsImV4cCI6MjA5MjYyMzY5NX0.Y9i7hY4Fz5Ua0XAXWy8OqevSYAGW9GrJyoBVBAOFpxM';
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ============================================
+   ESTADO GLOBAL
+   ============================================ */
+const estado = {
+  usuario: null,            // { id, email, nombre, rol }
+  moduloActivo: 'dashboard',
+  pedidos: [],
+  clientes: [],
+  notificaciones: 0,
+  cargandoDashboard: false,
+};
+
+/* ============================================
+   ESTRUCTURA DEL SIDEBAR
+   ============================================ */
+const NAVEGACION = [
+  { grupo: 'GENERAL', items: [
+    { id: 'dashboard',   icono: '&#128202;', texto: 'Dashboard', badge: true },
+    { id: 'seguimiento', icono: '&#128203;', texto: 'Seguimiento' },
+    { id: 'reportes',    icono: '&#128200;', texto: 'Reportes' },
+    { id: 'clientes',    icono: '&#128101;', texto: 'Clientes' },
+    { id: 'usuarios',    icono: '&#128100;', texto: 'Usuarios' },
+  ]},
+  { grupo: 'PEDIDOS', items: [
+    { id: 'nuevo-pedido',     icono: '&#10133;', texto: 'Nuevo pedido' },
+    { id: 'todos-pedidos',    icono: '&#128230;', texto: 'Todos los pedidos' },
+    { id: 'historial',        icono: '&#9989;', texto: 'Historial' },
+  ]},
+  { grupo: 'PRODUCCI&Oacute;N', items: [
+    { id: 'almacen-entrada',  icono: '&#127981;', texto: 'Almac&eacute;n Entrada' },
+    { id: 'corte-planeacion', icono: '&#9986;',   texto: 'Corte Planeaci&oacute;n' },
+    { id: 'impresion',        icono: '&#128424;', texto: 'Impresi&oacute;n' },
+    { id: 'calandra',         icono: '&#128293;', texto: 'Calandra' },
+    { id: 'costura',          icono: '&#129525;', texto: 'Costura' },
+    { id: 'maquila',          icono: '&#128295;', texto: 'Maquila' },
+    { id: 'almacen-salida',   icono: '&#128228;', texto: 'Almac&eacute;n Salida' },
+    { id: 'bordado',          icono: '&#129705;', texto: 'Bordado' },
+  ]},
+  { grupo: 'MARKETPLACE', items: [
+    { id: 'inv-liso',     icono: '&#128085;', texto: 'Inventario en liso' },
+    { id: 'picking-list', icono: '&#128203;', texto: 'Picking list' },
+    { id: 'skus',         icono: '&#127991;', texto: 'SKUs' },
+  ]},
+  { grupo: 'CAT&Aacute;LOGOS', items: [
+    { id: 'disenos', icono: '&#127912;', texto: 'Dise&ntilde;os' },
+  ]},
+  { grupo: 'CONFIG', items: [
+    { id: 'cfg-calandra', icono: '&#9881;',  texto: 'Calandra por tela' },
+    { id: 'cfg-horarios', icono: '&#128340;', texto: 'Horarios y turnos' },
+    { id: 'cfg-fichas',   icono: '&#128196;', texto: 'Fichas t&eacute;cnicas' },
+  ]},
+];
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+function obtenerInicial(nombre) {
+  if (!nombre) return 'U';
+  const partes = nombre.trim().split(/\s+/);
+  return (partes[0][0] + (partes[1] ? partes[1][0] : '')).toUpperCase();
+}
+
+function formatearFechaLarga(fecha) {
+  return new Date(fecha).toLocaleDateString('es-MX', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+}
+
+function formatearFechaCorta(fecha) {
+  if (!fecha) return '—';
+  return new Date(fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+}
+
+function diasRestantes(fechaCompromiso) {
+  if (!fechaCompromiso) return null;
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const f = new Date(fechaCompromiso); f.setHours(0,0,0,0);
+  const diff = Math.round((f - hoy) / (1000*60*60*24));
+  return diff;
+}
+
+function pillDias(dias) {
+  if (dias === null || dias === undefined) return '<span class="dias-pill gris">—</span>';
+  let clase = 'verde'; let texto = dias + ' d&iacute;as';
+  if (dias <= 0) { clase = 'rojo'; texto = dias === 0 ? 'Hoy' : Math.abs(dias) + ' d. vencido'; }
+  else if (dias <= 3) { clase = 'amarillo'; }
+  return '<span class="dias-pill ' + clase + '">' + texto + '</span>';
+}
+
+function badgeEstado(estado) {
+  const mapa = {
+    'pendiente':     { clase: 'amarillo', texto: 'Pendiente' },
+    'en_produccion': { clase: 'amarillo', texto: 'En producci&oacute;n' },
+    'listo':         { clase: 'verde',   texto: 'Listo' },
+    'retrasado':     { clase: 'rojo',    texto: 'Retrasado' },
+    'entregado':     { clase: 'azul',    texto: 'Entregado' },
+    'pausado':       { clase: 'gris',    texto: 'Pausado' },
+    'cancelado':     { clase: 'rojo',    texto: 'Cancelado' },
+  };
+  const m = mapa[estado] || { clase: 'gris', texto: estado || '—' };
+  return '<span class="badge ' + m.clase + '">' + m.texto + '</span>';
+}
+
+function escapar(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function mostrarError(elementoId, mensaje) {
+  const el = document.getElementById(elementoId);
+  if (!el) return;
+  el.textContent = mensaje;
+  el.classList.add('visible');
+}
+
+function ocultarError(elementoId) {
+  const el = document.getElementById(elementoId);
+  if (el) el.classList.remove('visible');
+}
+
+/* ============================================
+   LOGIN
+   ============================================ */
+async function manejarLogin(evento) {
+  evento.preventDefault();
+  ocultarError('error-login');
+  const email = document.getElementById('email-login').value.trim();
+  const password = document.getElementById('password-login').value;
+  const btn = document.getElementById('btn-entrar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="vertical-align:middle;border-color:rgba(255,255,255,0.4);border-top-color:#fff;"></span> Entrando...';
+
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Cargar perfil del usuario en la tabla 'usuarios'
+    let perfil = null;
+    try {
+      const { data: u } = await supa
+        .from('usuarios')
+        .select('id, email, nombre, rol')
+        .eq('email', email)
+        .maybeSingle();
+      perfil = u;
+    } catch (e) { /* tabla puede no existir todav&iacute;a */ }
+
+    const sesion = {
+      usuario_id: data.user.id,
+      email: data.user.email,
+      nombre: (perfil && perfil.nombre) ? perfil.nombre : (data.user.email.split('@')[0]),
+      rol: (perfil && perfil.rol) ? perfil.rol : 'usuario',
+    };
+    localStorage.setItem('ij_sesion', JSON.stringify(sesion));
+    estado.usuario = sesion;
+    iniciarApp();
+  } catch (err) {
+    mostrarError('error-login', err.message || 'No se pudo iniciar sesi&oacute;n');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+}
+
+function manejarOjo() {
+  const inp = document.getElementById('password-login');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function cerrarSesion() {
+  supa.auth.signOut().finally(() => {
+    localStorage.removeItem('ij_sesion');
+    estado.usuario = null;
+    document.getElementById('app-principal').style.display = 'none';
+    document.getElementById('pantalla-login').style.display = 'flex';
+  });
+}
+
+/* ============================================
+   INICIAR APP DESPU&Eacute;S DE LOGIN
+   ============================================ */
+function iniciarApp() {
+  document.getElementById('pantalla-login').style.display = 'none';
+  document.getElementById('app-principal').style.display = 'flex';
+  // Avatar
+  document.getElementById('avatar-usuario').textContent = obtenerInicial(estado.usuario.nombre);
+  // Render sidebar
+  renderSidebar();
+  // Render m&oacute;dulo inicial
+  cambiarModulo('dashboard');
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+function renderSidebar() {
+  const cont = document.getElementById('nav-sidebar');
+  let html = '';
+  NAVEGACION.forEach(grupo => {
+    html += '<div class="sidebar-grupo">';
+    html += '<div class="sidebar-grupo-titulo">' + grupo.grupo + '</div>';
+    grupo.items.forEach(item => {
+      const activo = (estado.moduloActivo === item.id) ? ' activo' : '';
+      const badge = (item.badge && estado.notificaciones > 0)
+        ? '<span class="badge-rojo" data-badge="aprobar">' + estado.notificaciones + '</span>'
+        : '';
+      html += '<div class="sidebar-item' + activo + '" data-mod="' + item.id + '">';
+      html += '<span class="icono">' + item.icono + '</span>';
+      html += '<span>' + item.texto + '</span>';
+      html += badge;
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  cont.innerHTML = html;
+  cont.querySelectorAll('.sidebar-item').forEach(el => {
+    el.addEventListener('click', () => cambiarModulo(el.dataset.mod));
+  });
+}
+
+function actualizarBadgeAprobar() {
+  document.querySelectorAll('[data-badge="aprobar"]').forEach(el => el.remove());
+  if (estado.notificaciones > 0) {
+    const item = document.querySelector('.sidebar-item[data-mod="dashboard"]');
+    if (item) {
+      const b = document.createElement('span');
+      b.className = 'badge-rojo';
+      b.dataset.badge = 'aprobar';
+      b.textContent = estado.notificaciones;
+      item.appendChild(b);
+    }
+    const bn = document.getElementById('badge-noti');
+    if (bn) { bn.style.display = 'inline-block'; bn.textContent = estado.notificaciones; }
+  } else {
+    const bn = document.getElementById('badge-noti');
+    if (bn) bn.style.display = 'none';
+  }
+}
+
+/* ============================================
+   ROUTING DE M&Oacute;DULOS
+   ============================================ */
+const TITULOS = {
+  'dashboard': 'Dashboard',
+  'seguimiento': 'Seguimiento',
+  'reportes': 'Reportes',
+  'clientes': 'Clientes',
+  'usuarios': 'Usuarios',
+  'nuevo-pedido': 'Nuevo pedido',
+  'todos-pedidos': 'Todos los pedidos',
+  'historial': 'Historial',
+  'almacen-entrada': 'Almac&eacute;n Entrada',
+  'corte-planeacion': 'Corte Planeaci&oacute;n',
+  'impresion': 'Impresi&oacute;n',
+  'calandra': 'Calandra',
+  'costura': 'Costura',
+  'maquila': 'Maquila',
+  'almacen-salida': 'Almac&eacute;n Salida',
+  'bordado': 'Bordado',
+  'inv-liso': 'Inventario en liso',
+  'picking-list': 'Picking list',
+  'skus': 'SKUs',
+  'disenos': 'Dise&ntilde;os',
+  'cfg-calandra': 'Calandra por tela',
+  'cfg-horarios': 'Horarios y turnos',
+  'cfg-fichas': 'Fichas t&eacute;cnicas',
+};
+
+function cambiarModulo(id) {
+  estado.moduloActivo = id;
+  // Resaltar
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('activo', el.dataset.mod === id);
+  });
+  document.getElementById('header-titulo').innerHTML = TITULOS[id] || id;
+  // Cerrar sidebar en m&oacute;vil
+  document.getElementById('sidebar').classList.remove('abierto');
+
+  if (id === 'dashboard') {
+    renderDashboard();
+  } else {
+    renderPlaceholder(id);
+  }
+}
+
+function renderPlaceholder(id) {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div class="modulo-placeholder">
+      <div class="icono-grande">&#128736;</div>
+      <h3>${TITULOS[id] || id}</h3>
+      <p>Este m&oacute;dulo se construir&aacute; en los siguientes bloques de desarrollo.</p>
+    </div>
+  `;
+}
+
+/* ============================================
+   DASHBOARD
+   ============================================ */
+async function renderDashboard() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div class="saludo-fila">
+      <div class="saludo">
+        <h2>Hola, ${escapar(estado.usuario.nombre)} &#128075;</h2>
+        <p>Aqu&iacute; tienes el resumen general de tu operaci&oacute;n.</p>
+      </div>
+      <div class="fecha-hoy">${formatearFechaLarga(new Date())}</div>
+    </div>
+
+    <div class="grid-metricas" id="grid-metricas">
+      ${tarjetaMetrica('por-aprobar', 'Por aprobar',         '&#128203;', 'ico-naranja')}
+      ${tarjetaMetrica('packing',     'Packing list',        '&#128230;', 'ico-azul')}
+      ${tarjetaMetrica('produccion',  'En producci&oacute;n', '&#127981;', 'ico-verde')}
+      ${tarjetaMetrica('listos',      'Listos para entregar', '&#9989;',  'ico-indigo')}
+    </div>
+
+    <div class="tarjeta" id="tarjeta-produccion">
+      <div class="tarjeta-titulo">
+        <span>En producci&oacute;n</span>
+        <span style="font-size:12px; color:var(--text-muted); font-weight:400;" id="contador-produccion"></span>
+      </div>
+      <div id="tabla-produccion-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando pedidos...</div></div>
+    </div>
+
+    <div id="seccion-aprobar" class="tarjeta" style="margin-top:24px; display:none;">
+      <div class="tarjeta-titulo"><span>Pedidos por aprobar</span></div>
+      <div id="lista-aprobar-cont"></div>
+    </div>
+
+    <div class="grid-2col">
+      <div class="tarjeta">
+        <div class="tarjeta-titulo">Pr&oacute;ximas entregas</div>
+        <div id="lista-entregas-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando...</div></div>
+      </div>
+      <div class="tarjeta">
+        <div class="tarjeta-titulo">Alertas</div>
+        <div id="lista-alertas-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando...</div></div>
+      </div>
+    </div>
+  `;
+  await cargarDatosDashboard();
+}
+
+function tarjetaMetrica(id, titulo, icono, claseIcono) {
+  return `
+    <div class="tarjeta tarjeta-metrica" data-metrica="${id}">
+      <div class="metrica-top">
+        <div>
+          <div class="metrica-titulo">${titulo}</div>
+          <div class="metrica-numero" id="num-${id}"><span class="spinner"></span></div>
+        </div>
+        <div class="metrica-icono ${claseIcono}">${icono}</div>
+      </div>
+      <div class="metrica-comp" id="comp-${id}">&nbsp;</div>
+    </div>
+  `;
+}
+
+async function cargarDatosDashboard() {
+  if (estado.cargandoDashboard) return;
+  estado.cargandoDashboard = true;
+
+  let pedidos = [];
+  let clientes = [];
+  let errorMostrado = false;
+
+  try {
+    const { data: pData, error: pErr } = await supa
+      .from('pedidos')
+      .select('id, folio, tipo, cliente_id, vendedor_id, etapa_actual, estado, prioridad, fecha_captura, fecha_comprometida, precio_total, observaciones, creado_en')
+      .order('fecha_comprometida', { ascending: true });
+    if (pErr) throw pErr;
+    pedidos = pData || [];
+  } catch (e) {
+    console.error('Error cargando pedidos:', e);
+    errorMostrado = true;
+  }
+
+  try {
+    const { data: cData, error: cErr } = await supa
+      .from('clientes')
+      .select('id, nombre, telefono, email');
+    if (cErr) throw cErr;
+    clientes = cData || [];
+  } catch (e) {
+    console.error('Error cargando clientes:', e);
+  }
+
+  estado.pedidos = pedidos;
+  estado.clientes = clientes;
+
+  // Mapa de clientes
+  const mapaClientes = {};
+  clientes.forEach(c => mapaClientes[c.id] = c);
+
+  // M&eacute;tricas
+  const porAprobar = pedidos.filter(p => p.estado === 'pendiente').length;
+  const packing    = pedidos.filter(p => (p.etapa_actual || '').toLowerCase().includes('almacen entrada')
+                                       || (p.etapa_actual || '').toLowerCase().includes('almac&eacute;n entrada')).length;
+  const produccion = pedidos.filter(p => p.estado === 'en_produccion').length;
+  const listos     = pedidos.filter(p =>
+                       ((p.etapa_actual || '').toLowerCase().includes('almacen salida')
+                        || (p.etapa_actual || '').toLowerCase().includes('almac&eacute;n salida'))
+                       && (p.estado === 'listo' || p.estado === 'en_produccion')
+                     );
+
+  setNumero('num-por-aprobar', porAprobar);
+  setNumero('num-packing',     packing);
+  setNumero('num-produccion',  produccion);
+  setNumero('num-listos',      listos.length);
+
+  estado.notificaciones = porAprobar;
+  actualizarBadgeAprobar();
+
+  // Listeners de las tarjetas-m&eacute;trica
+  document.querySelectorAll('.tarjeta-metrica').forEach(t => {
+    t.addEventListener('click', () => clickMetrica(t.dataset.metrica, listos));
+  });
+
+  // Tabla en producci&oacute;n
+  renderTablaProduccion(pedidos.filter(p => p.estado === 'en_produccion'), mapaClientes);
+
+  // Pedidos por aprobar
+  renderListaAprobar(pedidos.filter(p => p.estado === 'pendiente'), mapaClientes);
+
+  // Pr&oacute;ximas entregas
+  renderProximasEntregas(pedidos, mapaClientes);
+
+  // Alertas
+  renderAlertas(pedidos, mapaClientes);
+
+  estado.cargandoDashboard = false;
+}
+
+function setNumero(id, n) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = n;
+}
+
+function clickMetrica(tipo, listos) {
+  if (tipo === 'por-aprobar') {
+    const sec = document.getElementById('seccion-aprobar');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (tipo === 'packing') {
+    cambiarModulo('almacen-entrada');
+  } else if (tipo === 'produccion') {
+    document.getElementById('tarjeta-produccion').scrollIntoView({ behavior: 'smooth' });
+  } else if (tipo === 'listos') {
+    abrirModalListos(listos);
+  }
+}
+
+function abrirModalListos(listos) {
+  const body = document.getElementById('modal-body');
+  document.getElementById('modal-titulo').textContent = 'Listos para entregar';
+  if (!listos || listos.length === 0) {
+    body.innerHTML = '<div class="vacio">No hay pedidos listos para entregar.</div>';
+  } else {
+    const mapaClientes = {};
+    estado.clientes.forEach(c => mapaClientes[c.id] = c);
+    let html = '<table class="tabla"><thead><tr><th>Folio</th><th>Cliente</th><th>Fecha entrega</th></tr></thead><tbody>';
+    listos.forEach(p => {
+      const cli = mapaClientes[p.cliente_id];
+      html += '<tr>';
+      html += '<td><strong>' + escapar(p.folio) + '</strong></td>';
+      html += '<td>' + escapar(cli ? cli.nombre : '—') + '</td>';
+      html += '<td>' + formatearFechaCorta(p.fecha_comprometida) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    body.innerHTML = html;
+  }
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+function renderTablaProduccion(pedidos, mapaClientes) {
+  const cont = document.getElementById('tabla-produccion-cont');
+  document.getElementById('contador-produccion').textContent = pedidos.length + ' pedidos activos';
+  if (!pedidos.length) {
+    cont.innerHTML = '<div class="vacio">No hay pedidos en producci&oacute;n.</div>';
+    return;
+  }
+  let html = '<table class="tabla"><thead><tr>';
+  html += '<th>Folio</th><th>Cliente</th><th>Etapa</th><th>Entrega</th><th>D&iacute;as restantes</th><th>Estado</th>';
+  html += '</tr></thead><tbody>';
+  pedidos.forEach(p => {
+    const cli = mapaClientes[p.cliente_id];
+    const dias = diasRestantes(p.fecha_comprometida);
+    html += '<tr class="clickable" data-pedido="' + p.id + '">';
+    html += '<td><strong>' + escapar(p.folio) + '</strong></td>';
+    html += '<td>' + escapar(cli ? cli.nombre : '—') + '</td>';
+    html += '<td>' + escapar(p.etapa_actual || '—') + '</td>';
+    html += '<td>' + formatearFechaCorta(p.fecha_comprometida) + '</td>';
+    html += '<td>' + pillDias(dias) + '</td>';
+    html += '<td>' + badgeEstado(p.estado) + '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('tr.clickable').forEach(tr => {
+    tr.addEventListener('click', () => abrirPanelPedido(tr.dataset.pedido));
+  });
+}
+
+function renderListaAprobar(pedidos, mapaClientes) {
+  const sec = document.getElementById('seccion-aprobar');
+  const cont = document.getElementById('lista-aprobar-cont');
+  if (!pedidos.length) {
+    sec.style.display = 'none';
+    return;
+  }
+  sec.style.display = 'block';
+  let html = '<div class="lista-aprobar">';
+  pedidos.forEach(p => {
+    const cli = mapaClientes[p.cliente_id];
+    html += '<div class="item-aprobar">';
+    html += '<div class="info">';
+    html += '<span class="folio">' + escapar(p.folio) + ' &middot; ' + escapar(p.tipo || '—') + '</span>';
+    html += '<span class="meta">Cliente: ' + escapar(cli ? cli.nombre : '—') + ' &middot; Capturado: ' + formatearFechaCorta(p.fecha_captura || p.creado_en) + '</span>';
+    html += '</div>';
+    html += '<div class="acciones">';
+    html += '<button class="btn-mini aprobar" data-aprobar="' + p.id + '">Aprobar</button>';
+    html += '<button class="btn-mini rechazar" data-rechazar="' + p.id + '">Rechazar</button>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-aprobar]').forEach(b => {
+    b.addEventListener('click', () => aprobarRechazar(b.dataset.aprobar, 'aprobar'));
+  });
+  cont.querySelectorAll('[data-rechazar]').forEach(b => {
+    b.addEventListener('click', () => aprobarRechazar(b.dataset.rechazar, 'rechazar'));
+  });
+}
+
+async function aprobarRechazar(idPedido, accion) {
+  const nuevoEstado = accion === 'aprobar' ? 'en_produccion' : 'cancelado';
+  try {
+    const { error } = await supa.from('pedidos').update({ estado: nuevoEstado }).eq('id', idPedido);
+    if (error) throw error;
+    await cargarDatosDashboard();
+  } catch (e) {
+    alert('No se pudo actualizar el pedido: ' + (e.message || e));
+  }
+}
+
+function renderProximasEntregas(pedidos, mapaClientes) {
+  const cont = document.getElementById('lista-entregas-cont');
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const proximos = pedidos
+    .filter(p => p.fecha_comprometida && p.estado !== 'entregado' && p.estado !== 'cancelado')
+    .sort((a, b) => new Date(a.fecha_comprometida) - new Date(b.fecha_comprometida))
+    .slice(0, 5);
+  if (!proximos.length) {
+    cont.innerHTML = '<div class="vacio">Sin entregas pr&oacute;ximas.</div>';
+    return;
+  }
+  let html = '<div class="lista-entregas">';
+  proximos.forEach(p => {
+    const cli = mapaClientes[p.cliente_id];
+    html += '<div class="item-entrega">';
+    html += '<div class="fecha">' + formatearFechaCorta(p.fecha_comprometida) + '</div>';
+    html += '<div class="info">';
+    html += '<div class="folio-tipo">' + escapar(p.folio) + ' &middot; ' + escapar(p.tipo || '—') + '</div>';
+    html += '<div class="cliente">' + escapar(cli ? cli.nombre : '—') + '</div>';
+    html += '</div>';
+    html += '<div>' + badgeEstado(p.estado) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+function renderAlertas(pedidos, mapaClientes) {
+  const cont = document.getElementById('lista-alertas-cont');
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const alertas = [];
+  pedidos.forEach(p => {
+    if (p.estado === 'pausado') {
+      alertas.push({ tipo: 'warn', texto: 'Pedido ' + p.folio + ' pausado', id: p.id });
+    }
+    if (p.fecha_comprometida && p.estado !== 'entregado' && p.estado !== 'cancelado') {
+      const d = diasRestantes(p.fecha_comprometida);
+      if (d !== null && d < 0) {
+        alertas.push({ tipo: 'danger', texto: 'Pedido ' + p.folio + ' vencido (' + Math.abs(d) + ' d&iacute;as)', id: p.id });
+      }
+    }
+  });
+  if (!alertas.length) {
+    cont.innerHTML = '<div class="vacio">Sin alertas — todo en orden &#10003;</div>';
+    return;
+  }
+  let html = '<div class="lista-alertas">';
+  alertas.forEach(a => {
+    html += '<div class="item-alerta ' + a.tipo + '" data-pedido="' + a.id + '">';
+    html += '<span>' + (a.tipo === 'danger' ? '&#9888;' : '&#9888;') + '</span>';
+    html += '<span>' + a.texto + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('.item-alerta').forEach(el => {
+    el.addEventListener('click', () => abrirPanelPedido(el.dataset.pedido));
+  });
+}
+
+/* ============================================
+   PANEL LATERAL DETALLE PEDIDO
+   ============================================ */
+function abrirPanelPedido(idPedido) {
+  const p = estado.pedidos.find(x => String(x.id) === String(idPedido));
+  if (!p) return;
+  const cli = estado.clientes.find(c => c.id === p.cliente_id);
+  const body = document.getElementById('panel-body');
+  document.getElementById('panel-titulo').textContent = 'Pedido ' + p.folio;
+  body.innerHTML = `
+    <div class="campo"><label>Folio</label><div class="valor">${escapar(p.folio)}</div></div>
+    <div class="campo"><label>Cliente</label><div class="valor">${escapar(cli ? cli.nombre : '—')}</div></div>
+    <div class="campo"><label>Tipo</label><div class="valor">${escapar(p.tipo || '—')}</div></div>
+    <div class="campo"><label>Etapa actual</label><div class="valor">${escapar(p.etapa_actual || '—')}</div></div>
+    <div class="campo"><label>Estado</label><div class="valor">${badgeEstado(p.estado)}</div></div>
+    <div class="campo"><label>Prioridad</label><div class="valor">${escapar(p.prioridad || '—')}</div></div>
+    <div class="campo"><label>Fecha de captura</label><div class="valor">${formatearFechaCorta(p.fecha_captura || p.creado_en)}</div></div>
+    <div class="campo"><label>Fecha comprometida</label><div class="valor">${formatearFechaCorta(p.fecha_comprometida)}</div></div>
+    <div class="campo"><label>Precio total</label><div class="valor">${p.precio_total != null ? '$' + Number(p.precio_total).toLocaleString('es-MX') : '—'}</div></div>
+    <div class="campo"><label>Observaciones</label><div class="valor">${escapar(p.observaciones || '—')}</div></div>
+  `;
+  document.getElementById('panel-overlay').classList.add('visible');
+  document.getElementById('panel-lateral').classList.add('visible');
+}
+
+function cerrarPanel() {
+  document.getElementById('panel-overlay').classList.remove('visible');
+  document.getElementById('panel-lateral').classList.remove('visible');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-overlay').classList.remove('visible');
+}
+
+/* ============================================
+   INIT
+   ============================================ */
+function init() {
+  // Login
+  document.getElementById('form-login').addEventListener('submit', manejarLogin);
+  document.getElementById('btn-ojo').addEventListener('click', manejarOjo);
+
+  // Header
+  document.getElementById('avatar-usuario').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('dropdown-usuario').classList.toggle('visible');
+  });
+  document.addEventListener('click', () => {
+    document.getElementById('dropdown-usuario').classList.remove('visible');
+  });
+  document.getElementById('btn-cerrar-sesion').addEventListener('click', cerrarSesion);
+
+  // Modal y panel
+  document.getElementById('modal-cerrar').addEventListener('click', cerrarModal);
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-overlay') cerrarModal();
+  });
+  document.getElementById('panel-cerrar').addEventListener('click', cerrarPanel);
+  document.getElementById('panel-overlay').addEventListener('click', cerrarPanel);
+
+  // M&oacute;vil
+  document.getElementById('btn-menu-toggle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('sidebar').classList.toggle('abierto');
+  });
+
+  // Restaurar sesi&oacute;n si existe
+  const guardada = localStorage.getItem('ij_sesion');
+  if (guardada) {
+    try {
+      estado.usuario = JSON.parse(guardada);
+      iniciarApp();
+    } catch (e) {
+      localStorage.removeItem('ij_sesion');
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
