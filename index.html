@@ -677,6 +677,188 @@
   }
   .modulo-placeholder h3 { margin: 0 0 6px 0; color: var(--text); font-weight: 600; }
   .modulo-placeholder p { margin: 0; font-size: 13px; }
+
+  /* ============================================
+     BLOQUE 2 - CAPTURA DE PEDIDOS
+     ============================================ */
+  .b2-wrap { max-width: 980px; }
+  .b2-titulo { font-size: 18px; font-weight: 700; margin: 0 0 6px 0; }
+  .b2-subtitulo { color: var(--text-muted); font-size: 13.5px; margin: 0 0 18px 0; }
+
+  .grid-tipos {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) { .grid-tipos { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid-tipos { grid-template-columns: 1fr; } }
+  .tarjeta-tipo {
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all .15s;
+    text-align: left;
+  }
+  .tarjeta-tipo:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .tarjeta-tipo.activa { border-color: var(--primary); background: var(--primary-light); }
+  .tarjeta-tipo .ico { font-size: 28px; margin-bottom: 8px; }
+  .tarjeta-tipo .codigo { font-size: 12px; color: var(--text-light); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .tarjeta-tipo .nombre { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+  .tarjeta-tipo.activa .nombre { color: var(--primary); }
+  .tarjeta-tipo .folio-fmt { font-size: 12px; color: var(--text-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  .form-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .form-card h3 { margin: 0 0 14px 0; font-size: 15px; font-weight: 600; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-grupo { display: flex; flex-direction: column; }
+  .form-grupo.full { grid-column: 1/-1; }
+  .form-grupo label { font-size: 12.5px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .form-grupo .req { color: var(--danger); }
+  .form-grupo input[type=text],
+  .form-grupo input[type=number],
+  .form-grupo input[type=date],
+  .form-grupo input[type=email],
+  .form-grupo select,
+  .form-grupo textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13.5px;
+    background: #fff;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .form-grupo textarea { min-height: 70px; resize: vertical; }
+  .form-grupo input:focus, .form-grupo select:focus, .form-grupo textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  }
+  .form-grupo.error input,
+  .form-grupo.error select,
+  .form-grupo.error textarea { border-color: var(--danger); }
+  .form-grupo.error label { color: var(--danger); }
+  .form-grupo .ayuda { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+  .input-con-boton { display: flex; gap: 6px; }
+  .input-con-boton select { flex: 1; }
+  .btn-mas {
+    background: var(--primary); color: #fff; border-radius: 8px;
+    padding: 0 12px; font-weight: 700; font-size: 18px; line-height: 1; min-width: 36px;
+  }
+  .btn-mas:hover { background: var(--primary-hover); }
+
+  .opciones-radio { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .opciones-radio label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; background: #F9FAFB; border: 1px solid var(--border);
+    padding: 7px 12px; border-radius: 20px; cursor: pointer; margin: 0;
+  }
+  .opciones-radio label:hover { border-color: var(--primary); }
+  .opciones-radio input { accent-color: var(--primary); margin: 0; }
+  .opciones-check { display: flex; flex-wrap: wrap; gap: 10px; }
+  .opciones-check label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; background: #F9FAFB; border: 1px solid var(--border);
+    padding: 6px 11px; border-radius: 8px; cursor: pointer; margin: 0;
+  }
+  .opciones-check input { accent-color: var(--primary); margin: 0; }
+
+  .aviso-amarillo {
+    background: #FFFBEB;
+    border-left: 3px solid var(--warning);
+    color: #92400E;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  .disenos-cont { display: flex; flex-direction: column; gap: 12px; }
+  .diseno-card {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; background: #FAFBFC;
+  }
+  .diseno-card .titulo-fila { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .diseno-card .titulo-fila h4 { margin: 0; font-size: 13.5px; font-weight: 600; }
+  .btn-quitar { color: var(--danger); font-size: 16px; padding: 4px 8px; border-radius: 6px; }
+  .btn-quitar:hover { background: #FEF2F2; }
+  .preview-img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); background: #fff; display: block; margin-top: 6px; }
+  .preview-vacio { width: 120px; height: 120px; border-radius: 8px; border: 2px dashed var(--border); background: #fff; display: flex; align-items: center; justify-content: center; color: var(--text-light); font-size: 24px; }
+
+  .btn-secundario {
+    background: #F3F4F6; color: var(--text);
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; border: 1px solid var(--border);
+  }
+  .btn-secundario:hover { background: #E5E7EB; }
+  .btn-success {
+    background: var(--success); color: #fff;
+    padding: 11px 22px; border-radius: 8px;
+    font-weight: 600; font-size: 14px;
+  }
+  .btn-success:hover { background: #059669; }
+  .btn-success:disabled { opacity: .6; cursor: not-allowed; }
+
+  .tabla-tallas { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; }
+  .tabla-tallas th, .tabla-tallas td { border: 1px solid var(--border); padding: 6px 4px; text-align: center; }
+  .tabla-tallas th { background: #F9FAFB; font-weight: 600; color: var(--text-muted); font-size: 11px; }
+  .tabla-tallas input { width: 100%; border: none; padding: 4px; font-size: 13px; text-align: center; background: transparent; outline: none; }
+  .tabla-tallas input:focus { background: #EEF2FF; }
+  .tabla-tallas .total-celda { background: var(--primary-light); color: var(--primary); font-weight: 700; }
+  .scroll-x { overflow-x: auto; }
+
+  .maquilero-fila { display: grid; grid-template-columns: 1fr 140px 36px; gap: 8px; margin-bottom: 8px; }
+
+  .resumen-card { background: #F3F4F6; border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .resumen-card .folio-prev { font-size: 18px; font-weight: 700; color: var(--primary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .resumen-card .resumen-fila { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #E5E7EB; }
+  .resumen-card .resumen-fila:last-child { border-bottom: none; }
+  .resumen-card .resumen-fila span:first-child { color: var(--text-muted); }
+  .resumen-card .resumen-fila span:last-child { font-weight: 600; }
+  .resumen-total { display: flex; justify-content: space-between; padding-top: 10px; margin-top: 6px; border-top: 2px solid var(--border); font-size: 15px; font-weight: 700; color: var(--primary); }
+  .acciones-finales { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+  .badge.tipo-sub  { background: #EFF6FF; color: #1D4ED8; }
+  .badge.tipo-pts  { background: #F5F3FF; color: #6D28D9; }
+  .badge.tipo-mue  { background: #FFF7ED; color: #C2410C; }
+  .badge.tipo-vt   { background: #ECFDF5; color: #047857; }
+  .badge.tipo-pi   { background: #F3F4F6; color: #4B5563; }
+
+  .filtros-fila { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  .filtros-fila input, .filtros-fila select {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; background: #fff; outline: none; font-family: inherit;
+  }
+  .filtros-fila input { min-width: 220px; }
+
+  .toast-exito {
+    position: fixed; top: 80px; right: 24px;
+    background: #ECFDF5; color: #047857;
+    border: 1px solid #A7F3D0; border-radius: 10px;
+    padding: 12px 18px; font-size: 13.5px; font-weight: 500;
+    box-shadow: var(--shadow-md); z-index: 100;
+    animation: slideIn .25s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  .barra-etapas { display: flex; gap: 4px; margin: 12px 0 18px 0; }
+  .barra-etapas .et { flex: 1; height: 6px; background: var(--border); border-radius: 3px; }
+  .barra-etapas .et.completa { background: var(--success); }
+  .barra-etapas .et.actual { background: var(--primary); }
+
 </style>
 </head>
 <body>
@@ -1059,6 +1241,10 @@ function cambiarModulo(id) {
 
   if (id === 'dashboard') {
     renderDashboard();
+  } else if (id === 'nuevo-pedido') {
+    renderNuevoPedido();
+  } else if (id === 'todos-pedidos') {
+    renderTodosPedidos();
   } else {
     renderPlaceholder(id);
   }
@@ -1463,6 +1649,1092 @@ function init() {
     }
   }
 }
+
+
+
+/* ============================================
+   BLOQUE 2 - CAPTURA DE PEDIDOS
+   ============================================ */
+
+const TIPOS_PEDIDO = [
+  { code: 'SUB', icono: '&#128424;', nombre: 'Sublimaci&oacute;n',         desc: 'Sublimaci&oacute;n', folioFmt: 'IJ-SUB-XXXX' },
+  { code: 'PTS', icono: '&#128085;', nombre: 'Prenda Terminada',          desc: 'Prenda Terminada Sublimada', folioFmt: 'IJ-PTS-XXXX' },
+  { code: 'MUE', icono: '&#127912;', nombre: 'Muestra',                   desc: 'Muestra', folioFmt: 'IJ-MUE-XXXX' },
+  { code: 'VT',  icono: '&#129525;', nombre: 'Venta de Tela',             desc: 'Venta de Tela',  folioFmt: 'IJ-VT-XXXX'  },
+  { code: 'PI',  icono: '&#128196;', nombre: 'Papel de Impresi&oacute;n', desc: 'Papel de Impresi&oacute;n',   folioFmt: 'IJ-PI-XXXX'  },
+];
+
+const TALLAS = ['XXS','XS','S','M','L','XL','XXL','XXXL','T3','T4','T5','T6','T7','T8','&Uacute;nica'];
+
+const formState = {
+  tipo: null,
+  disenos: [],
+  maquileros: [],
+  clientes: [],
+  vendedores: [],
+  consecutivoSiguiente: null,
+  guardando: false,
+};
+
+let _disenoIdSeq = 0;
+
+async function renderNuevoPedido() {
+  formState.tipo = null;
+  formState.disenos = [];
+  formState.maquileros = [];
+
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div class="b2-wrap">
+      <h2 class="b2-titulo">Nuevo pedido</h2>
+      <p class="b2-subtitulo">Selecciona el tipo de pedido para comenzar la captura.</p>
+      <div class="grid-tipos" id="grid-tipos"></div>
+      <div id="form-pedido-cont"></div>
+    </div>
+  `;
+  const grid = document.getElementById('grid-tipos');
+  let html = '';
+  TIPOS_PEDIDO.forEach(t => {
+    html += `
+      <button type="button" class="tarjeta-tipo" data-tipo="${t.code}">
+        <div class="ico">${t.icono}</div>
+        <div class="codigo">${t.code}</div>
+        <div class="nombre">${t.desc}</div>
+        <div class="folio-fmt">${t.folioFmt}</div>
+      </button>
+    `;
+  });
+  grid.innerHTML = html;
+  grid.querySelectorAll('.tarjeta-tipo').forEach(b => {
+    b.addEventListener('click', () => seleccionarTipoPedido(b.dataset.tipo));
+  });
+  cargarCatalogosFormulario();
+}
+
+async function cargarCatalogosFormulario() {
+  try {
+    const { data, error } = await supa.from('clientes').select('id, nombre').order('nombre', { ascending: true });
+    if (error) throw error;
+    formState.clientes = data || [];
+  } catch (e) { console.warn('clientes:', e.message || e); formState.clientes = []; }
+
+  try {
+    const { data, error } = await supa.from('usuarios')
+      .select('id, nombre, rol')
+      .in('rol', ['vendedor', 'director', 'Director', 'Vendedor']);
+    if (error) throw error;
+    formState.vendedores = data || [];
+  } catch (e) { console.warn('vendedores:', e.message || e); formState.vendedores = []; }
+
+  try {
+    const { count, error } = await supa.from('pedidos').select('*', { count: 'exact', head: true });
+    if (error) throw error;
+    formState.consecutivoSiguiente = (count || 0) + 1;
+  } catch (e) {
+    console.warn('consecutivo:', e.message || e);
+    formState.consecutivoSiguiente = 1;
+  }
+}
+
+function seleccionarTipoPedido(codigo) {
+  formState.tipo = codigo;
+  formState.disenos = [];
+  formState.maquileros = [];
+  document.querySelectorAll('.tarjeta-tipo').forEach(t => {
+    t.classList.toggle('activa', t.dataset.tipo === codigo);
+  });
+  renderFormularioPedido();
+}
+
+function renderFormularioPedido() {
+  const cont = document.getElementById('form-pedido-cont');
+  if (!cont) return;
+  const t = formState.tipo;
+  if (!t) { cont.innerHTML = ''; return; }
+
+  let html = renderCamposComunes();
+  if (t === 'SUB') html += renderFormSUB();
+  else if (t === 'PTS') html += renderFormPTS();
+  else if (t === 'MUE') html += renderFormMUE();
+  else if (t === 'VT')  html += renderFormVT();
+  else if (t === 'PI')  html += renderFormPI();
+  html += renderSeccionResumen();
+
+  cont.innerHTML = html;
+  enlazarEventosFormulario();
+  recalcularResumen();
+
+  if (t === 'SUB' || t === 'PTS' || t === 'MUE') agregarDiseno();
+}
+
+function renderCamposComunes() {
+  const opcCli = ['<option value="">Selecciona un cliente...</option>']
+    .concat(formState.clientes.map(c => '<option value="'+c.id+'">'+escapar(c.nombre)+'</option>')).join('');
+  const opcVen = ['<option value="">Selecciona un vendedor...</option>']
+    .concat(formState.vendedores.map(v => '<option value="'+v.id+'">'+escapar(v.nombre || ('Usuario '+v.id))+'</option>')).join('');
+  const hoy = new Date().toISOString().slice(0,10);
+
+  return `
+    <div class="form-card">
+      <h3>Datos generales</h3>
+      <div class="form-grid">
+        <div class="form-grupo full">
+          <label>Cliente <span class="req">*</span></label>
+          <div class="input-con-boton">
+            <select id="f-cliente" required>${opcCli}</select>
+            <button type="button" class="btn-mas" id="btn-nuevo-cliente" title="Agregar nuevo cliente">+</button>
+          </div>
+        </div>
+        <div class="form-grupo">
+          <label>Vendedor <span class="req">*</span></label>
+          <select id="f-vendedor" required>${opcVen}</select>
+          <div class="ayuda">Si no aparecen vendedores, verifica los roles en la tabla usuarios.</div>
+        </div>
+        <div class="form-grupo">
+          <label>Fecha comprometida <span class="req">*</span></label>
+          <input type="date" id="f-fecha" min="${hoy}" required />
+        </div>
+        <div class="form-grupo full">
+          <label>Observaciones generales</label>
+          <textarea id="f-observaciones" placeholder="Notas adicionales del pedido..."></textarea>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bloqueTela(incluirProcedencia) {
+  let html = '<div class="form-card"><h3>Tela</h3><div class="form-grid">';
+  if (incluirProcedencia) {
+    html += `
+      <div class="form-grupo full">
+        <label>&iquest;De qui&eacute;n es la tela? <span class="req">*</span></label>
+        <div class="opciones-radio" id="op-tela-propia">
+          <label><input type="radio" name="tela_propia" value="true" checked /><span>Tela propia (IJ)</span></label>
+          <label><input type="radio" name="tela_propia" value="false" /><span>Tela del cliente</span></label>
+        </div>
+      </div>
+      <div class="form-grupo full" id="grupo-llegada" style="display:none;">
+        <label>&iquest;C&oacute;mo llega la tela?</label>
+        <div class="opciones-radio">
+          <label><input type="radio" name="tela_llegada" value="chofer" /><span>Chofer la recoge</span></label>
+          <label><input type="radio" name="tela_llegada" value="cliente" /><span>Cliente la trae</span></label>
+        </div>
+      </div>
+    `;
+  }
+  html += `
+      <div class="form-grupo">
+        <label>Tipo de tela <span class="req">*</span></label>
+        <input type="text" id="f-tela-tipo" list="lista-telas" placeholder="Ej: Mini Jersey 160g" required />
+        <datalist id="lista-telas">
+          <option value="Mini Jersey 160g"></option>
+          <option value="Burda 220g"></option>
+          <option value="Pique 200g"></option>
+          <option value="Lycra 240g"></option>
+          <option value="Microfibra"></option>
+        </datalist>
+      </div>
+      <div class="form-grupo">
+        <label>Ancho de la tela (cm) <span class="req">*</span></label>
+        <input type="number" id="f-tela-ancho" min="1" step="1" placeholder="Ej: 160" required />
+      </div>
+    </div></div>`;
+  return html;
+}
+
+function bloqueUnidadMedida(opciones, defaultOp) {
+  const ops = (opciones || ['metros','rollos','repeticiones','kilogramos']).map((o, i) => {
+    const sel = (defaultOp === o || (defaultOp == null && i === 0)) ? ' checked' : '';
+    const txt = o.charAt(0).toUpperCase() + o.slice(1);
+    return `<label><input type="radio" name="unidad_medida" value="${o}"${sel} /><span>${txt}</span></label>`;
+  }).join('');
+  return `
+    <div class="form-card">
+      <h3>Unidad de medida</h3>
+      <div class="opciones-radio">${ops}</div>
+      <div class="form-grid" style="margin-top:14px;">
+        <div class="form-grupo">
+          <label>Cantidad solicitada <span class="req">*</span></label>
+          <input type="number" id="f-cantidad" min="0" step="0.01" placeholder="0" required />
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bloqueLado() {
+  return `
+    <div class="form-card">
+      <h3>Lado de sublimaci&oacute;n</h3>
+      <div class="opciones-radio">
+        <label><input type="radio" name="lado_sublimacion" value="derecho" checked /><span>Derecho</span></label>
+        <label><input type="radio" name="lado_sublimacion" value="reves" /><span>Rev&eacute;s</span></label>
+        <label><input type="radio" name="lado_sublimacion" value="ambos" /><span>Ambos lados</span></label>
+      </div>
+    </div>
+  `;
+}
+
+function bloquePreciosSUB() {
+  return `
+    <div class="form-card">
+      <h3>Precios</h3>
+      <div class="form-grid">
+        <div class="form-grupo" id="grupo-precio-tela">
+          <label>Precio tela por metro / kg ($)</label>
+          <input type="number" id="f-precio-tela" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="form-grupo">
+          <label>Precio sublimado por metro ($) <span class="req">*</span></label>
+          <input type="number" id="f-precio-sub" min="0" step="0.01" placeholder="0.00" required />
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bloqueDisenos() {
+  return `
+    <div class="form-card">
+      <h3>Dise&ntilde;os</h3>
+      <div class="disenos-cont" id="disenos-cont"></div>
+      <button type="button" class="btn-secundario" id="btn-add-diseno" style="margin-top:12px;">+ Agregar dise&ntilde;o</button>
+    </div>
+  `;
+}
+
+function renderFormSUB() {
+  return bloqueTela(true) + bloqueUnidadMedida() + bloqueLado() + bloquePreciosSUB() + bloqueDisenos();
+}
+
+function renderFormPTS() {
+  return bloqueTela(true) + bloqueUnidadMedida() + bloqueLado() + bloquePreciosSUB() + `
+    <div class="form-card">
+      <h3>Muestra previa <span class="req">*</span></h3>
+      <div class="opciones-radio" id="op-muestra">
+        <label><input type="radio" name="muestra_existe" value="si" /><span>S&iacute;, ya existe muestra aprobada</span></label>
+        <label><input type="radio" name="muestra_existe" value="no" checked /><span>No</span></label>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-grupo full" id="grupo-folio-mue" style="display:none;">
+          <label>Folio MUE de la muestra aprobada</label>
+          <input type="text" id="f-folio-mue" placeholder="Ej: IJ-MUE-0023" />
+        </div>
+      </div>
+      <div class="aviso-amarillo" id="aviso-muestra">
+        &#9888; Se requiere muestra aprobada antes de producci&oacute;n. El pedido quedar&aacute; en espera hasta que se apruebe una muestra.
+      </div>
+    </div>
+    ` + bloqueDisenos() + `
+    <div class="form-card">
+      <h3>Destino de producci&oacute;n</h3>
+      <div class="opciones-radio" id="op-destino">
+        <label><input type="radio" name="destino" value="taller" checked /><span>Taller propio</span></label>
+        <label><input type="radio" name="destino" value="maquila" /><span>Maquila</span></label>
+        <label><input type="radio" name="destino" value="ambos" /><span>Ambos (taller + maquila)</span></label>
+      </div>
+      <div id="grupo-maquileros" style="display:none; margin-top:14px;">
+        <label style="font-size:12.5px; font-weight:500; margin-bottom:6px; display:block;">Maquileros asignados</label>
+        <div id="maquileros-cont"></div>
+        <button type="button" class="btn-secundario" id="btn-add-maquilero" style="margin-top:6px;">+ Agregar maquilero</button>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>Procesos extra</h3>
+      <div class="opciones-check">
+        <label><input type="checkbox" name="proc_bordado" /> Bordado</label>
+        <label><input type="checkbox" name="proc_dtf" /> DTF</label>
+        <label><input type="checkbox" name="proc_tampo" /> Tampograf&iacute;a</label>
+        <label><input type="checkbox" name="proc_vinil" /> Vinil</label>
+        <label><input type="checkbox" name="proc_etiqueta" checked /> Etiquetado (obligatorio)</label>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-grupo full">
+          <label>Otros procesos</label>
+          <input type="text" id="f-proc-otro" placeholder="Especifica si hay alg&uacute;n otro proceso" />
+        </div>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>Tipo de empaque</h3>
+      <div class="opciones-radio" id="op-empaque">
+        <label><input type="radio" name="empaque" value="estandar" checked /><span>Bolsa individual + caja (est&aacute;ndar)</span></label>
+        <label><input type="radio" name="empaque" value="cliente" /><span>Especificaci&oacute;n del cliente</span></label>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-grupo full" id="grupo-empaque-cliente" style="display:none;">
+          <label>Especificaci&oacute;n de empaque</label>
+          <input type="text" id="f-empaque-cliente" placeholder="Describe el empaque solicitado" />
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderFormMUE() {
+  return `
+    <div class="form-card">
+      <h3>Sub-tipo de muestra</h3>
+      <div class="opciones-radio" id="op-submue">
+        <label><input type="radio" name="submue" value="sublimado" checked /><span>Muestra de sublimado</span></label>
+        <label><input type="radio" name="submue" value="prenda" /><span>Muestra de prenda f&iacute;sica</span></label>
+        <label><input type="radio" name="submue" value="mockup" /><span>Mockup digital</span></label>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>&iquest;Tiene costo?</h3>
+      <div class="opciones-radio" id="op-costo">
+        <label><input type="radio" name="mue_costo" value="no" checked /><span>No</span></label>
+        <label><input type="radio" name="mue_costo" value="si" /><span>S&iacute;</span></label>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-grupo full" id="grupo-mue-precio" style="display:none;">
+          <label>Precio de la muestra ($)</label>
+          <input type="number" id="f-mue-precio" min="0" step="0.01" placeholder="0.00" />
+        </div>
+      </div>
+    </div>
+    ` + bloqueDisenos();
+}
+
+function renderFormVT() {
+  return `
+    <div class="form-card">
+      <h3>Tipo de tela</h3>
+      <div class="form-grid">
+        <div class="form-grupo full">
+          <label>Tipo de tela <span class="req">*</span></label>
+          <input type="text" id="f-tela-tipo" list="lista-telas" placeholder="Ej: Mini Jersey 160g" required />
+          <datalist id="lista-telas">
+            <option value="Mini Jersey 160g"></option>
+            <option value="Burda 220g"></option>
+            <option value="Pique 200g"></option>
+          </datalist>
+        </div>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>Unidad de venta</h3>
+      <div class="opciones-radio" id="op-unidad-vt">
+        <label><input type="radio" name="unidad_medida" value="rollos" checked /><span>Rollos completos</span></label>
+        <label><input type="radio" name="unidad_medida" value="kilogramos" /><span>Kilogramos</span></label>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="form-grupo">
+          <label>Cantidad <span class="req">*</span></label>
+          <input type="number" id="f-cantidad" min="0" step="0.01" placeholder="0" required />
+        </div>
+        <div class="form-grupo">
+          <label>Precio cotizado ($) <span class="req">*</span></label>
+          <input type="number" id="f-precio-vt" min="0" step="0.01" placeholder="0.00" required />
+          <div class="ayuda" id="ayuda-precio-vt">Por unidad seleccionada</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>Tela especial</h3>
+      <div class="opciones-radio">
+        <label><input type="radio" name="tela_especial" value="no" checked /><span>No</span></label>
+        <label><input type="radio" name="tela_especial" value="si" /><span>S&iacute;, conseguida para este cliente</span></label>
+      </div>
+    </div>
+  `;
+}
+
+function renderFormPI() {
+  return `
+    <div class="form-card">
+      <h3>Ancho del papel</h3>
+      <div class="opciones-radio">
+        <label><input type="radio" name="ancho_papel" value="162" checked /><span>162 cm</span></label>
+        <label><input type="radio" name="ancho_papel" value="182" /><span>182 cm</span></label>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>Cantidad y precio</h3>
+      <div class="form-grid">
+        <div class="form-grupo">
+          <label>Metros exactos solicitados <span class="req">*</span></label>
+          <input type="number" id="f-cantidad" min="0" step="0.01" placeholder="0" required />
+        </div>
+        <div class="form-grupo">
+          <label>Precio por metro ($) <span class="req">*</span></label>
+          <input type="number" id="f-precio-pi" min="0" step="0.01" placeholder="0.00" required />
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSeccionResumen() {
+  const tipo = formState.tipo;
+  const consec = formState.consecutivoSiguiente || '?';
+  const folioPrev = 'IJ-'+tipo+'-'+String(consec).padStart(4,'0');
+  return `
+    <div class="form-card">
+      <h3>Resumen del pedido</h3>
+      <div class="resumen-card">
+        <div class="resumen-fila"><span>Folio que se asignar&aacute;</span><span class="folio-prev" id="folio-prev">${folioPrev}</span></div>
+        <div class="resumen-fila"><span>Tipo</span><span id="r-tipo">${tipo}</span></div>
+        <div class="resumen-fila"><span>Cliente</span><span id="r-cliente">&mdash;</span></div>
+        <div class="resumen-fila"><span>Cantidad / Metros</span><span id="r-cantidad">&mdash;</span></div>
+        <div class="resumen-fila" id="r-fila-disenos" style="display:none;"><span>Dise&ntilde;os</span><span id="r-disenos">0</span></div>
+        <div class="resumen-total"><span>Total estimado</span><span id="r-total">$0.00</span></div>
+      </div>
+      <div class="acciones-finales">
+        <button type="button" class="btn-secundario" id="btn-cancelar-pedido">Cancelar</button>
+        <button type="button" class="btn-success" id="btn-enviar-pedido">Enviar pedido</button>
+      </div>
+    </div>
+  `;
+}
+
+function enlazarEventosFormulario() {
+  const btnNvoCli = document.getElementById('btn-nuevo-cliente');
+  if (btnNvoCli) btnNvoCli.addEventListener('click', abrirModalNuevoCliente);
+
+  const btnCancelar = document.getElementById('btn-cancelar-pedido');
+  if (btnCancelar) btnCancelar.addEventListener('click', () => renderNuevoPedido());
+
+  const btnEnviar = document.getElementById('btn-enviar-pedido');
+  if (btnEnviar) btnEnviar.addEventListener('click', enviarPedido);
+
+  const btnAddDis = document.getElementById('btn-add-diseno');
+  if (btnAddDis) btnAddDis.addEventListener('click', () => agregarDiseno());
+
+  const opTela = document.getElementById('op-tela-propia');
+  if (opTela) {
+    opTela.addEventListener('change', () => {
+      const propia = document.querySelector('input[name="tela_propia"]:checked').value === 'true';
+      const grLleg = document.getElementById('grupo-llegada');
+      const grPrec = document.getElementById('grupo-precio-tela');
+      if (grLleg) grLleg.style.display = propia ? 'none' : 'block';
+      if (grPrec) grPrec.style.display = propia ? 'block' : 'none';
+    });
+  }
+
+  const opMuestra = document.getElementById('op-muestra');
+  if (opMuestra) {
+    opMuestra.addEventListener('change', () => {
+      const v = document.querySelector('input[name="muestra_existe"]:checked').value;
+      document.getElementById('grupo-folio-mue').style.display = v === 'si' ? 'block' : 'none';
+      document.getElementById('aviso-muestra').style.display = v === 'no' ? 'block' : 'none';
+    });
+  }
+
+  const opDest = document.getElementById('op-destino');
+  if (opDest) {
+    opDest.addEventListener('change', () => {
+      const v = document.querySelector('input[name="destino"]:checked').value;
+      const cont = document.getElementById('grupo-maquileros');
+      if (!cont) return;
+      cont.style.display = (v === 'maquila' || v === 'ambos') ? 'block' : 'none';
+      if ((v === 'maquila' || v === 'ambos') && formState.maquileros.length === 0) agregarMaquilero();
+    });
+    const btnAddMaq = document.getElementById('btn-add-maquilero');
+    if (btnAddMaq) btnAddMaq.addEventListener('click', () => agregarMaquilero());
+  }
+
+  const opEmp = document.getElementById('op-empaque');
+  if (opEmp) {
+    opEmp.addEventListener('change', () => {
+      const v = document.querySelector('input[name="empaque"]:checked').value;
+      document.getElementById('grupo-empaque-cliente').style.display = v === 'cliente' ? 'block' : 'none';
+    });
+  }
+
+  const opCosto = document.getElementById('op-costo');
+  if (opCosto) {
+    opCosto.addEventListener('change', () => {
+      const v = document.querySelector('input[name="mue_costo"]:checked').value;
+      document.getElementById('grupo-mue-precio').style.display = v === 'si' ? 'block' : 'none';
+    });
+  }
+
+  const opVtU = document.getElementById('op-unidad-vt');
+  if (opVtU) {
+    opVtU.addEventListener('change', () => {
+      const u = document.querySelector('input[name="unidad_medida"]:checked').value;
+      const a = document.getElementById('ayuda-precio-vt');
+      if (a) a.textContent = u === 'rollos' ? 'Por rollo' : 'Por kg';
+      recalcularResumen();
+    });
+  }
+
+  document.getElementById('form-pedido-cont').addEventListener('input', recalcularResumen);
+  document.getElementById('form-pedido-cont').addEventListener('change', recalcularResumen);
+}
+
+function agregarDiseno() {
+  const id = ++_disenoIdSeq;
+  const tallas = {};
+  TALLAS.forEach(t => tallas[t] = 0);
+  formState.disenos.push({ id, nombre: '', imagen_url: '', metros: 0, observaciones: '', tallas });
+  renderDisenos();
+}
+
+function quitarDiseno(id) {
+  formState.disenos = formState.disenos.filter(d => d.id !== id);
+  renderDisenos();
+}
+
+function renderDisenos() {
+  const cont = document.getElementById('disenos-cont');
+  if (!cont) return;
+  if (!formState.disenos.length) { cont.innerHTML = '<div class="vacio">Agrega al menos un dise&ntilde;o</div>'; recalcularResumen(); return; }
+  const conTallas = (formState.tipo === 'PTS') || (formState.tipo === 'MUE' && (document.querySelector('input[name="submue"]:checked')||{}).value === 'prenda');
+  let html = '';
+  formState.disenos.forEach((d, idx) => {
+    html += `
+      <div class="diseno-card" data-did="${d.id}">
+        <div class="titulo-fila">
+          <h4>Dise&ntilde;o #${idx+1}</h4>
+          <button type="button" class="btn-quitar" data-quitar="${d.id}" title="Quitar">&times;</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-grupo">
+            <label>Nombre / referencia</label>
+            <input type="text" data-d-nombre="${d.id}" value="${escapar(d.nombre)}" placeholder="Ej: Logo frontal" />
+          </div>
+          <div class="form-grupo">
+            <label>Imagen del dise&ntilde;o (URL)</label>
+            <input type="text" data-d-imagen="${d.id}" value="${escapar(d.imagen_url)}" placeholder="https://..." />
+          </div>
+          <div class="form-grupo">
+            <label>Metros a imprimir</label>
+            <input type="number" min="0" step="0.01" data-d-metros="${d.id}" value="${d.metros||''}" />
+          </div>
+          <div class="form-grupo">
+            <label>Observaciones del dise&ntilde;o</label>
+            <input type="text" data-d-obs="${d.id}" value="${escapar(d.observaciones)}" />
+          </div>
+          <div class="form-grupo full">
+            ${d.imagen_url ? '<img class="preview-img" src="'+escapar(d.imagen_url)+'" alt="preview" onerror="this.style.display=\'none\'" />' : '<div class="preview-vacio">&#128247;</div>'}
+          </div>
+          ${conTallas ? renderTablaTallas(d) : ''}
+        </div>
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+
+  cont.querySelectorAll('[data-quitar]').forEach(b => b.addEventListener('click', () => quitarDiseno(parseInt(b.dataset.quitar))));
+  cont.querySelectorAll('[data-d-nombre]').forEach(i => i.addEventListener('input', e => actualizarDiseno(parseInt(i.dataset.dNombre),'nombre',e.target.value)));
+  cont.querySelectorAll('[data-d-imagen]').forEach(i => i.addEventListener('change', e => { actualizarDiseno(parseInt(i.dataset.dImagen),'imagen_url',e.target.value); renderDisenos(); }));
+  cont.querySelectorAll('[data-d-metros]').forEach(i => i.addEventListener('input', e => actualizarDiseno(parseInt(i.dataset.dMetros),'metros',parseFloat(e.target.value)||0)));
+  cont.querySelectorAll('[data-d-obs]').forEach(i => i.addEventListener('input', e => actualizarDiseno(parseInt(i.dataset.dObs),'observaciones',e.target.value)));
+  cont.querySelectorAll('[data-talla]').forEach(i => i.addEventListener('input', e => {
+    const did = parseInt(i.dataset.did);
+    const talla = i.dataset.talla;
+    const d = formState.disenos.find(x => x.id === did);
+    if (d) { d.tallas[talla] = parseInt(e.target.value)||0; actualizarTotalTallas(did); recalcularResumen(); }
+  }));
+  recalcularResumen();
+}
+
+function actualizarDiseno(id, campo, valor) {
+  const d = formState.disenos.find(x => x.id === id);
+  if (d) d[campo] = valor;
+  recalcularResumen();
+}
+
+function renderTablaTallas(d) {
+  let html = '<div class="form-grupo full"><label>Tallas y cantidades</label><div class="scroll-x"><table class="tabla-tallas"><thead><tr>';
+  TALLAS.forEach(t => html += '<th>'+t+'</th>');
+  html += '<th>Total</th></tr></thead><tbody><tr>';
+  TALLAS.forEach(t => {
+    html += '<td><input type="number" min="0" step="1" data-did="'+d.id+'" data-talla="'+t+'" value="'+(d.tallas[t]||'')+'" /></td>';
+  });
+  const total = Object.values(d.tallas).reduce((a,b)=>a+(parseInt(b)||0),0);
+  html += '<td class="total-celda" id="total-tallas-'+d.id+'">'+total+'</td>';
+  html += '</tr></tbody></table></div></div>';
+  return html;
+}
+
+function actualizarTotalTallas(did) {
+  const d = formState.disenos.find(x => x.id === did);
+  if (!d) return;
+  const total = Object.values(d.tallas).reduce((a,b)=>a+(parseInt(b)||0),0);
+  const el = document.getElementById('total-tallas-'+did);
+  if (el) el.textContent = total;
+}
+
+function agregarMaquilero() {
+  formState.maquileros.push({ nombre: '', cantidad: 0 });
+  renderMaquileros();
+}
+
+function quitarMaquilero(idx) {
+  formState.maquileros.splice(idx, 1);
+  renderMaquileros();
+}
+
+function renderMaquileros() {
+  const cont = document.getElementById('maquileros-cont');
+  if (!cont) return;
+  let html = '';
+  formState.maquileros.forEach((m, idx) => {
+    html += `
+      <div class="maquilero-fila">
+        <input type="text" placeholder="Nombre del maquilero" data-mq-nombre="${idx}" value="${escapar(m.nombre)}" />
+        <input type="number" min="0" step="1" placeholder="Cantidad" data-mq-cant="${idx}" value="${m.cantidad||''}" />
+        <button type="button" class="btn-quitar" data-mq-quitar="${idx}">&times;</button>
+      </div>
+    `;
+  });
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-mq-nombre]').forEach(i => i.addEventListener('input', e => formState.maquileros[parseInt(i.dataset.mqNombre)].nombre = e.target.value));
+  cont.querySelectorAll('[data-mq-cant]').forEach(i => i.addEventListener('input', e => formState.maquileros[parseInt(i.dataset.mqCant)].cantidad = parseInt(e.target.value)||0));
+  cont.querySelectorAll('[data-mq-quitar]').forEach(b => b.addEventListener('click', () => quitarMaquilero(parseInt(b.dataset.mqQuitar))));
+}
+
+function recalcularResumen() {
+  const tipo = formState.tipo;
+  if (!tipo) return;
+  const selCli = document.getElementById('f-cliente');
+  if (selCli) {
+    const opt = selCli.options[selCli.selectedIndex];
+    const elc = document.getElementById('r-cliente');
+    if (elc) elc.textContent = opt && opt.value ? opt.text : '—';
+  }
+  let cantidad = 0;
+  const inpCant = document.getElementById('f-cantidad');
+  if (inpCant) cantidad = parseFloat(inpCant.value) || 0;
+  let totalMetros = 0;
+  if (tipo === 'SUB' || tipo === 'PTS' || tipo === 'MUE') {
+    formState.disenos.forEach(d => totalMetros += (parseFloat(d.metros)||0));
+  }
+  const elCant = document.getElementById('r-cantidad');
+  if (elCant) {
+    if (totalMetros > 0) elCant.textContent = totalMetros + ' m (dise&ntilde;os)';
+    else elCant.textContent = cantidad ? cantidad : '—';
+  }
+  if (tipo === 'SUB' || tipo === 'PTS' || tipo === 'MUE') {
+    const fd = document.getElementById('r-fila-disenos');
+    if (fd) fd.style.display = 'flex';
+    const rd = document.getElementById('r-disenos');
+    if (rd) rd.textContent = formState.disenos.length;
+  }
+  let total = 0;
+  if (tipo === 'SUB' || tipo === 'PTS') {
+    const ps = parseFloat((document.getElementById('f-precio-sub')||{}).value) || 0;
+    const pt = parseFloat((document.getElementById('f-precio-tela')||{}).value) || 0;
+    const propia = (document.querySelector('input[name="tela_propia"]:checked')||{}).value === 'true';
+    const baseMetros = totalMetros > 0 ? totalMetros : cantidad;
+    total = baseMetros * ps + (propia ? baseMetros * pt : 0);
+  } else if (tipo === 'MUE') {
+    const costoSi = (document.querySelector('input[name="mue_costo"]:checked')||{}).value === 'si';
+    if (costoSi) total = parseFloat((document.getElementById('f-mue-precio')||{}).value) || 0;
+  } else if (tipo === 'VT') {
+    const pv = parseFloat((document.getElementById('f-precio-vt')||{}).value) || 0;
+    total = cantidad * pv;
+  } else if (tipo === 'PI') {
+    const pp = parseFloat((document.getElementById('f-precio-pi')||{}).value) || 0;
+    total = cantidad * pp;
+  }
+  const elTotal = document.getElementById('r-total');
+  if (elTotal) elTotal.textContent = '
+</script>
+</body>
+</html>
+ + total.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function abrirModalNuevoCliente() {
+  document.getElementById('modal-titulo').textContent = 'Nuevo cliente';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo full"><label>Nombre <span class="req">*</span></label><input type="text" id="nc-nombre" /></div>
+      <div class="form-grupo"><label>Tel&eacute;fono</label><input type="text" id="nc-tel" /></div>
+      <div class="form-grupo"><label>Email</label><input type="email" id="nc-email" /></div>
+    </div>
+    <div class="acciones-finales">
+      <button type="button" class="btn-secundario" id="nc-cancel">Cancelar</button>
+      <button type="button" class="btn-success" id="nc-guardar">Guardar</button>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.getElementById('nc-cancel').addEventListener('click', () => document.getElementById('modal-overlay').classList.remove('visible'));
+  document.getElementById('nc-guardar').addEventListener('click', guardarNuevoCliente);
+}
+
+async function guardarNuevoCliente() {
+  const nombre = document.getElementById('nc-nombre').value.trim();
+  if (!nombre) { alert('Nombre es obligatorio'); return; }
+  const telefono = document.getElementById('nc-tel').value.trim();
+  const email = document.getElementById('nc-email').value.trim();
+  try {
+    const { data, error } = await supa.from('clientes').insert({ nombre, telefono, email }).select().single();
+    if (error) throw error;
+    formState.clientes.push({ id: data.id, nombre: data.nombre });
+    formState.clientes.sort((a,b) => (a.nombre||'').localeCompare(b.nombre||''));
+    document.getElementById('modal-overlay').classList.remove('visible');
+    renderFormularioPedido();
+    setTimeout(() => {
+      const sel = document.getElementById('f-cliente');
+      if (sel) sel.value = data.id;
+      recalcularResumen();
+    }, 50);
+  } catch (e) {
+    alert('No se pudo guardar el cliente: ' + (e.message || e));
+  }
+}
+
+async function enviarPedido() {
+  if (formState.guardando) return;
+  const errores = [];
+  const cliente_id = (document.getElementById('f-cliente')||{}).value;
+  const vendedor_id = (document.getElementById('f-vendedor')||{}).value;
+  const fecha = (document.getElementById('f-fecha')||{}).value;
+  const obs = ((document.getElementById('f-observaciones')||{}).value || '').trim();
+  if (!cliente_id) errores.push('f-cliente');
+  if (!vendedor_id) errores.push('f-vendedor');
+  if (!fecha) errores.push('f-fecha');
+
+  const tipo = formState.tipo;
+  let cantidad = parseFloat((document.getElementById('f-cantidad')||{}).value) || 0;
+  let tela_tipo = ((document.getElementById('f-tela-tipo')||{}).value || '').trim();
+  let tela_ancho = parseFloat((document.getElementById('f-tela-ancho')||{}).value) || null;
+  let unidad = (document.querySelector('input[name="unidad_medida"]:checked')||{}).value || null;
+  let lado = (document.querySelector('input[name="lado_sublimacion"]:checked')||{}).value || null;
+  let propia = (document.querySelector('input[name="tela_propia"]:checked')||{}).value === 'true';
+  let precio_tela = parseFloat((document.getElementById('f-precio-tela')||{}).value) || 0;
+  let precio_sub  = parseFloat((document.getElementById('f-precio-sub')||{}).value) || 0;
+  let precio_total = 0;
+
+  if (tipo === 'SUB' || tipo === 'PTS') {
+    if (!tela_tipo) errores.push('f-tela-tipo');
+    if (!tela_ancho) errores.push('f-tela-ancho');
+    if (!precio_sub) errores.push('f-precio-sub');
+    if (!formState.disenos.length) { alert('Agrega al menos un dise\u00f1o'); return; }
+    const metrosD = formState.disenos.reduce((a,d)=>a+(parseFloat(d.metros)||0),0);
+    const base = metrosD || cantidad;
+    precio_total = base * precio_sub + (propia ? base * precio_tela : 0);
+  } else if (tipo === 'MUE') {
+    if (!formState.disenos.length) { alert('Agrega al menos un dise\u00f1o'); return; }
+    if ((document.querySelector('input[name="mue_costo"]:checked')||{}).value === 'si') {
+      precio_total = parseFloat((document.getElementById('f-mue-precio')||{}).value) || 0;
+    }
+  } else if (tipo === 'VT') {
+    if (!cantidad) errores.push('f-cantidad');
+    const pv = parseFloat((document.getElementById('f-precio-vt')||{}).value) || 0;
+    if (!pv) errores.push('f-precio-vt');
+    if (!tela_tipo) errores.push('f-tela-tipo');
+    propia = true;
+    precio_total = cantidad * pv;
+    precio_sub = pv;
+  } else if (tipo === 'PI') {
+    if (!cantidad) errores.push('f-cantidad');
+    const pp = parseFloat((document.getElementById('f-precio-pi')||{}).value) || 0;
+    if (!pp) errores.push('f-precio-pi');
+    precio_total = cantidad * pp;
+    precio_sub = pp;
+    tela_ancho = parseFloat((document.querySelector('input[name="ancho_papel"]:checked')||{}).value) || null;
+  }
+
+  document.querySelectorAll('.form-grupo.error').forEach(g => g.classList.remove('error'));
+  if (errores.length) {
+    errores.forEach(id => {
+      const inp = document.getElementById(id);
+      if (inp && inp.closest('.form-grupo')) inp.closest('.form-grupo').classList.add('error');
+    });
+    alert('Faltan campos obligatorios. Rev\u00edsalos resaltados en rojo.');
+    return;
+  }
+
+  formState.guardando = true;
+  const btn = document.getElementById('btn-enviar-pedido');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="border-color:rgba(255,255,255,.4); border-top-color:#fff;"></span> Guardando...'; }
+
+  try {
+    const { count } = await supa.from('pedidos').select('*', { count: 'exact', head: true });
+    const consec = (count || 0) + 1;
+    const folio = 'IJ-' + tipo + '-' + String(consec).padStart(4,'0');
+
+    const payload = {
+      folio, tipo, cliente_id, vendedor_id,
+      etapa_actual: 'Captura',
+      estado: 'pendiente',
+      prioridad: 3,
+      fecha_captura: new Date().toISOString().slice(0,10),
+      fecha_comprometida: fecha,
+      precio_tela, precio_sublimado: precio_sub, precio_total,
+      tela_tipo, tela_propia: propia, tela_ancho,
+      unidad_medida: unidad, lado_sublimacion: lado,
+      observaciones: obs,
+    };
+
+    const { data: pedidoIns, error: pedErr } = await supa.from('pedidos').insert(payload).select().single();
+    if (pedErr) throw pedErr;
+
+    if (formState.disenos.length && (tipo === 'SUB' || tipo === 'PTS' || tipo === 'MUE')) {
+      const filasDis = formState.disenos.map((d, idx) => ({
+        pedido_id: pedidoIns.id,
+        imagen_url: d.imagen_url || null,
+        metros_solicitados: parseFloat(d.metros) || 0,
+        orden: idx + 1,
+      }));
+      const { data: disIns, error: disErr } = await supa.from('pedido_disenos').insert(filasDis).select();
+      if (disErr) console.warn('pedido_disenos:', disErr.message);
+
+      const conTallas = (tipo === 'PTS') || (tipo === 'MUE' && (document.querySelector('input[name="submue"]:checked')||{}).value === 'prenda');
+      if (conTallas && disIns) {
+        const filasTal = [];
+        formState.disenos.forEach((d, i) => {
+          const did = disIns[i] ? disIns[i].id : null;
+          Object.entries(d.tallas).forEach(([talla, cant]) => {
+            if (cant > 0) filasTal.push({ pedido_id: pedidoIns.id, diseno_id: did, talla, cantidad: cant });
+          });
+        });
+        if (filasTal.length) {
+          const { error: talErr } = await supa.from('pedido_tallas_v2').insert(filasTal);
+          if (talErr) console.warn('pedido_tallas_v2:', talErr.message);
+        }
+      }
+    }
+
+    try {
+      const cli = formState.clientes.find(c => String(c.id) === String(cliente_id));
+      await supa.from('notificaciones').insert({
+        tipo: 'pedido_nuevo',
+        mensaje: 'Nuevo pedido ' + folio + ' de ' + (cli ? cli.nombre : '\u2014') + ' requiere aprobaci\u00f3n',
+      });
+    } catch (e) { /* opcional */ }
+
+    mostrarToast('&#9989; Pedido ' + folio + ' creado exitosamente. Esperando aprobaci\u00f3n del director.');
+    cambiarModulo('todos-pedidos');
+  } catch (e) {
+    alert('Error al guardar: ' + (e.message || e));
+  } finally {
+    formState.guardando = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Enviar pedido'; }
+  }
+}
+
+function mostrarToast(html) {
+  const div = document.createElement('div');
+  div.className = 'toast-exito';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity .3s'; }, 4000);
+  setTimeout(() => { div.remove(); }, 4500);
+}
+
+/* ============================================
+   TODOS LOS PEDIDOS
+   ============================================ */
+const filtrosTP = { busqueda: '', tipo: 'todos', estado: 'todos', etapa: 'todas' };
+
+async function renderTodosPedidos() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div class="b2-wrap" style="max-width:1200px;">
+      <h2 class="b2-titulo">Todos los pedidos</h2>
+      <p class="b2-subtitulo">Visualiza, filtra y administra todos los pedidos.</p>
+
+      <div class="filtros-fila">
+        <input type="text" id="tp-busqueda" placeholder="Buscar por folio o cliente..." />
+        <select id="tp-tipo">
+          <option value="todos">Todos los tipos</option>
+          <option value="SUB">SUB - Sublimaci&oacute;n</option>
+          <option value="PTS">PTS - Prenda Terminada</option>
+          <option value="MUE">MUE - Muestra</option>
+          <option value="VT">VT - Venta de Tela</option>
+          <option value="PI">PI - Papel Impresi&oacute;n</option>
+        </select>
+        <select id="tp-estado">
+          <option value="todos">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="en_produccion">En producci&oacute;n</option>
+          <option value="listo">Listo</option>
+          <option value="entregado">Entregado</option>
+          <option value="cancelado">Cancelado</option>
+          <option value="pausado">Pausado</option>
+        </select>
+        <select id="tp-etapa">
+          <option value="todas">Todas las etapas</option>
+          <option value="Captura">Captura</option>
+          <option value="Aprobaci&oacute;n">Aprobaci&oacute;n</option>
+          <option value="Almacen Entrada">Almac&eacute;n Entrada</option>
+          <option value="Corte">Corte</option>
+          <option value="Impresi&oacute;n">Impresi&oacute;n</option>
+          <option value="Calandra">Calandra</option>
+          <option value="Costura">Costura</option>
+          <option value="Maquila">Maquila</option>
+          <option value="Almacen Salida">Almac&eacute;n Salida</option>
+        </select>
+      </div>
+
+      <div class="tarjeta">
+        <div id="tp-tabla-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando pedidos...</div></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('tp-busqueda').addEventListener('input', e => { filtrosTP.busqueda = e.target.value.toLowerCase(); renderTablaTodosPedidos(); });
+  document.getElementById('tp-tipo').addEventListener('change', e => { filtrosTP.tipo = e.target.value; renderTablaTodosPedidos(); });
+  document.getElementById('tp-estado').addEventListener('change', e => { filtrosTP.estado = e.target.value; renderTablaTodosPedidos(); });
+  document.getElementById('tp-etapa').addEventListener('change', e => { filtrosTP.etapa = e.target.value; renderTablaTodosPedidos(); });
+
+  await cargarTodosPedidos();
+}
+
+async function cargarTodosPedidos() {
+  try {
+    const { data: peds, error: pe } = await supa.from('pedidos')
+      .select('id, folio, tipo, cliente_id, vendedor_id, etapa_actual, estado, prioridad, fecha_captura, fecha_comprometida, precio_total, observaciones, creado_en')
+      .order('creado_en', { ascending: false });
+    if (pe) throw pe;
+    estado.pedidos = peds || [];
+  } catch (e) { console.warn('todosPedidos:', e.message || e); estado.pedidos = []; }
+  try {
+    const { data: cls } = await supa.from('clientes').select('id, nombre');
+    estado.clientes = cls || [];
+  } catch (e) { estado.clientes = []; }
+  try {
+    const { data: us } = await supa.from('usuarios').select('id, nombre, rol');
+    estado.vendedoresMap = {};
+    (us || []).forEach(u => estado.vendedoresMap[u.id] = u);
+  } catch (e) { estado.vendedoresMap = {}; }
+  renderTablaTodosPedidos();
+}
+
+function renderTablaTodosPedidos() {
+  const cont = document.getElementById('tp-tabla-cont');
+  if (!cont) return;
+  const mapaCli = {};
+  (estado.clientes || []).forEach(c => mapaCli[c.id] = c);
+  let lista = (estado.pedidos || []).filter(p => {
+    if (filtrosTP.tipo !== 'todos' && p.tipo !== filtrosTP.tipo) return false;
+    if (filtrosTP.estado !== 'todos' && p.estado !== filtrosTP.estado) return false;
+    if (filtrosTP.etapa !== 'todas' && p.etapa_actual !== filtrosTP.etapa) return false;
+    if (filtrosTP.busqueda) {
+      const cli = mapaCli[p.cliente_id];
+      const txt = ((p.folio||'') + ' ' + (cli ? cli.nombre : '')).toLowerCase();
+      if (txt.indexOf(filtrosTP.busqueda) === -1) return false;
+    }
+    return true;
+  });
+  if (!lista.length) { cont.innerHTML = '<div class="vacio">No hay pedidos que coincidan con los filtros.</div>'; return; }
+  let html = '<div class="scroll-x"><table class="tabla"><thead><tr>';
+  html += '<th>Folio</th><th>Tipo</th><th>Cliente</th><th>Vendedor</th><th>Etapa</th><th>Entrega</th><th>Estado</th><th>Acciones</th>';
+  html += '</tr></thead><tbody>';
+  lista.forEach(p => {
+    const cli = mapaCli[p.cliente_id];
+    const ven = (estado.vendedoresMap || {})[p.vendedor_id];
+    const dias = diasRestantes(p.fecha_comprometida);
+    const tipoClase = 'tipo-' + (p.tipo||'').toLowerCase();
+    const esDirector = (estado.usuario && (estado.usuario.rol === 'director' || estado.usuario.rol === 'Director'));
+    html += '<tr class="clickable" data-pid="' + p.id + '">';
+    html += '<td><strong style="color:var(--primary);">' + escapar(p.folio) + '</strong></td>';
+    html += '<td><span class="badge ' + tipoClase + '">' + escapar(p.tipo||'\u2014') + '</span></td>';
+    html += '<td>' + escapar(cli ? cli.nombre : '\u2014') + '</td>';
+    html += '<td>' + escapar(ven ? ven.nombre : '\u2014') + '</td>';
+    html += '<td>' + escapar(p.etapa_actual||'\u2014') + '</td>';
+    html += '<td>' + formatearFechaCorta(p.fecha_comprometida) + ' ' + pillDias(dias) + '</td>';
+    html += '<td>' + badgeEstado(p.estado) + '</td>';
+    html += '<td>';
+    html += '<button class="btn-mini" style="background:var(--primary);" data-ver="' + p.id + '" title="Ver">&#128065;</button>';
+    if (p.estado === 'pendiente' && esDirector) {
+      html += ' <button class="btn-mini aprobar" data-aprobar-tp="' + p.id + '">&#10003;</button>';
+    }
+    html += '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); abrirPanelPedidoExtendido(b.dataset.ver); }));
+  cont.querySelectorAll('tr.clickable').forEach(tr => tr.addEventListener('click', () => abrirPanelPedidoExtendido(tr.dataset.pid)));
+  cont.querySelectorAll('[data-aprobar-tp]').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    if (!confirm('\u00bfAprobar este pedido?')) return;
+    try {
+      const { error } = await supa.from('pedidos').update({ estado: 'en_produccion' }).eq('id', b.dataset.aprobarTp);
+      if (error) throw error;
+      await cargarTodosPedidos();
+    } catch (e2) { alert('Error: ' + (e2.message||e2)); }
+  }));
+}
+
+const ETAPAS_FLUJO = ['Captura','Aprobaci\u00f3n','Almacen Entrada','Corte','Impresi\u00f3n','Calandra','Costura','Almacen Salida'];
+
+async function abrirPanelPedidoExtendido(idPedido) {
+  const p = (estado.pedidos || []).find(x => String(x.id) === String(idPedido));
+  if (!p) return;
+  const cli = (estado.clientes || []).find(c => c.id === p.cliente_id);
+  const ven = (estado.vendedoresMap || {})[p.vendedor_id];
+  document.getElementById('panel-titulo').textContent = 'Pedido ' + p.folio;
+  const body = document.getElementById('panel-body');
+  body.innerHTML = '<div class="cargando-centro"><span class="spinner"></span> Cargando detalle...</div>';
+  document.getElementById('panel-overlay').classList.add('visible');
+  document.getElementById('panel-lateral').classList.add('visible');
+
+  let disenos = []; let tallas = [];
+  try { const { data } = await supa.from('pedido_disenos').select('id, imagen_url, metros_solicitados, orden').eq('pedido_id', p.id).order('orden'); disenos = data || []; } catch(e) {}
+  try { const { data } = await supa.from('pedido_tallas_v2').select('diseno_id, talla, cantidad').eq('pedido_id', p.id); tallas = data || []; } catch(e) {}
+
+  const etapaIdx = ETAPAS_FLUJO.indexOf(p.etapa_actual);
+  let barra = '<div class="barra-etapas">';
+  ETAPAS_FLUJO.forEach((e, i) => {
+    let clase = '';
+    if (etapaIdx > i) clase = 'completa';
+    else if (etapaIdx === i) clase = 'actual';
+    barra += '<div class="et ' + clase + '" title="' + e + '"></div>';
+  });
+  barra += '</div>';
+
+  let disHtml = '';
+  if (disenos.length) {
+    disHtml = '<div class="campo"><label>Dise\u00f1os</label>';
+    disenos.forEach((d, idx) => {
+      const tallasDis = tallas.filter(tt => tt.diseno_id === d.id);
+      disHtml += '<div style="border:1px solid var(--border); border-radius:8px; padding:10px; margin-top:8px;">';
+      disHtml += '<div style="font-weight:600; margin-bottom:6px;">Dise\u00f1o #' + (idx+1) + ' &middot; ' + (d.metros_solicitados||0) + ' m</div>';
+      if (d.imagen_url) disHtml += '<img class="preview-img" src="' + escapar(d.imagen_url) + '" onerror="this.style.display=\'none\'" />';
+      if (tallasDis.length) {
+        disHtml += '<div style="margin-top:8px; font-size:12px; color:var(--text-muted);">Tallas:</div><div style="font-size:12px;">';
+        tallasDis.forEach(t => disHtml += '<span style="display:inline-block; margin:2px 6px 2px 0;"><strong>' + escapar(t.talla) + ':</strong> ' + t.cantidad + '</span>');
+        disHtml += '</div>';
+      }
+      disHtml += '</div>';
+    });
+    disHtml += '</div>';
+  }
+
+  const esDirector = (estado.usuario && (estado.usuario.rol === 'director' || estado.usuario.rol === 'Director'));
+  const btnAprobar = (p.estado === 'pendiente' && esDirector)
+    ? '<button class="btn-success" id="pn-aprobar" style="margin-top:14px;">Aprobar pedido</button>' : '';
+
+  body.innerHTML = `
+    ${barra}
+    <div class="campo"><label>Folio</label><div class="valor">${escapar(p.folio)}</div></div>
+    <div class="campo"><label>Tipo</label><div class="valor"><span class="badge tipo-${(p.tipo||'').toLowerCase()}">${escapar(p.tipo||'\u2014')}</span></div></div>
+    <div class="campo"><label>Cliente</label><div class="valor">${escapar(cli ? cli.nombre : '\u2014')}</div></div>
+    <div class="campo"><label>Vendedor</label><div class="valor">${escapar(ven ? ven.nombre : '\u2014')}</div></div>
+    <div class="campo"><label>Etapa actual</label><div class="valor">${escapar(p.etapa_actual||'\u2014')}</div></div>
+    <div class="campo"><label>Estado</label><div class="valor">${badgeEstado(p.estado)}</div></div>
+    <div class="campo"><label>Fecha de captura</label><div class="valor">${formatearFechaCorta(p.fecha_captura||p.creado_en)}</div></div>
+    <div class="campo"><label>Fecha comprometida</label><div class="valor">${formatearFechaCorta(p.fecha_comprometida)}</div></div>
+    <div class="campo"><label>Precio total</label><div class="valor">${p.precio_total!=null ? '
+</script>
+</body>
+</html>
++Number(p.precio_total).toLocaleString('es-MX',{minimumFractionDigits:2}) : '\u2014'}</div></div>
+    <div class="campo"><label>Observaciones</label><div class="valor">${escapar(p.observaciones||'\u2014')}</div></div>
+    ${disHtml}
+    ${btnAprobar}
+  `;
+  const btnAp = document.getElementById('pn-aprobar');
+  if (btnAp) btnAp.addEventListener('click', async () => {
+    if (!confirm('\u00bfAprobar este pedido?')) return;
+    try {
+      const { error } = await supa.from('pedidos').update({ estado: 'en_produccion', etapa_actual: 'Almacen Entrada' }).eq('id', p.id);
+      if (error) throw error;
+      cerrarPanel();
+      await cargarTodosPedidos();
+    } catch(e) { alert('Error: ' + (e.message||e)); }
+  });
+}
+
 
 document.addEventListener('DOMContentLoaded', init);
 </script>
