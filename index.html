@@ -645,6 +645,8 @@ const NAVEGACION = [
     { id: 'reportes',    icono: '📈', texto: 'Reportes' },
     { id: 'clientes',    icono: '👥', texto: 'Clientes' },
     { id: 'usuarios',    icono: '👤', texto: 'Usuarios' },
+    { id: 'vendedores',  icono: '🤝', texto: 'Vendedores' },
+    { id: 'recolecciones', icono: '🚚', texto: 'Recolecciones' },
   ]},
   { grupo: 'PEDIDOS', items: [
     { id: 'nuevo-pedido',  icono: '➕', texto: 'Nuevo pedido' },
@@ -682,7 +684,7 @@ const NAVEGACION = [
 
 const TITULOS = {
   'dashboard': 'Dashboard', 'seguimiento': 'Seguimiento', 'reportes': 'Reportes',
-  'clientes': 'Clientes', 'usuarios': 'Usuarios', 'nuevo-pedido': 'Nuevo pedido',
+  'clientes': 'Clientes', 'usuarios': 'Usuarios', 'vendedores': 'Vendedores', 'recolecciones': 'Recolecciones', 'nuevo-pedido': 'Nuevo pedido',
   'todos-pedidos': 'Todos los pedidos', 'historial': 'Historial',
   'almacen-entrada': 'Almacén Entrada', 'corte-planeacion': 'Corte Planeación',
   'impresion': 'Impresión', 'calandra': 'Calandra', 'costura': 'Costura',
@@ -864,6 +866,8 @@ function cambiarModulo(id) {
     'dashboard':       renderDashboard,
     'clientes':        renderClientes,
     'usuarios':        renderUsuarios,
+    'vendedores':      renderVendedores,
+    'recolecciones':   renderRecolecciones,
     'disenos':         renderDisenosCatalogo,
     'seguimiento':     renderSeguimiento,
     'reportes':        renderReportes,
@@ -951,7 +955,7 @@ async function cargarDashboard() {
   estado.cargandoDashboard = true;
   try {
     const [{ data: peds }, { data: cls }, { data: vens }] = await Promise.all([
-      supa.from('pedidos').select('id,folio,tipo,cliente_id,vendedor_id,etapa_actual,estado,prioridad,fecha_captura,fecha_comprometida,precio_total,observaciones,creado_en').order('fecha_comprometida', { ascending: true }),
+      supa.from('pedidos').select('*').order('creado_en', { ascending: true }),
       supa.from('clientes').select('id,nombre,telefono,email'),
       supa.from('usuarios').select('id,nombre,rol'),
     ]);
@@ -1304,13 +1308,13 @@ async function renderVistaProduccion(moduloId) {
 async function cargarColaArea(moduloId, cfg) {
   let pedidos = [];
   try {
-    let query = supa.from('pedidos').select('id,folio,tipo,cliente_id,vendedor_id,etapa_actual,estado,prioridad,fecha_captura,fecha_comprometida,precio_total,tela_tipo,tela_ancho,lado_sublimacion,unidad_medida,observaciones,creado_en');
+    let query = supa.from('pedidos').select('*');
     if (cfg.etapa === 'Almacen Salida') {
       query = query.in('etapa_actual', ['Almacen Salida','Calidad']);
     } else {
       query = query.eq('etapa_actual', cfg.etapa);
     }
-    const { data, error } = await query.order('prioridad', { ascending: true }).order('fecha_comprometida', { ascending: true });
+    const { data, error } = await query.order('prioridad', { ascending: true }).order('creado_en', { ascending: true });
     if (error) throw error;
     pedidos = data || [];
   } catch(e) { console.error(e); }
@@ -2030,7 +2034,7 @@ async function renderTodosPedidos() {
 async function cargarTodosPedidosData() {
   try {
     const [{ data: peds }, { data: cls }, { data: vens }] = await Promise.all([
-      supa.from('pedidos').select('id,folio,tipo,cliente_id,vendedor_id,etapa_actual,estado,prioridad,fecha_captura,fecha_comprometida,precio_total,tela_tipo,observaciones,creado_en').order('creado_en', { ascending: false }),
+      supa.from('pedidos').select('*').order('creado_en', { ascending: false }),
       supa.from('clientes').select('id,nombre'),
       supa.from('usuarios').select('id,nombre,rol'),
     ]);
@@ -2095,7 +2099,7 @@ async function renderHistorial() {
       <div class="tarjeta"><div id="hist-cont"><div class="cargando-centro"><span class="spinner"></span></div></div></div>
     </div>`;
   try {
-    const { data: peds } = await supa.from('pedidos').select('id,folio,tipo,cliente_id,estado,etapa_actual,fecha_comprometida,precio_total,creado_en').eq('estado','entregado').order('creado_en',{ascending:false});
+    const { data: peds } = await supa.from('pedidos').select('*').eq('estado','entregado').order('creado_en',{ascending:false});
     const { data: cls } = await supa.from('clientes').select('id,nombre');
     const mapaCli = {};
     (cls||[]).forEach(c => mapaCli[c.id] = c);
@@ -2135,11 +2139,11 @@ const TIPOS_PEDIDO = [
   { code: 'PI',  icono: '📄', nombre: 'Papel de Impresión',  folioFmt: 'IJ-PI-XXXX'  },
 ];
 const TALLAS = ['XXS','XS','S','M','L','XL','XXL','XXXL','T3','T4','T5','T6','T7','T8','Única'];
-const formState = { tipo:null, disenos:[], maquileros:[], clientes:[], vendedores:[], consecutivo:null, guardando:false };
+const formState = { tipo:null, disenos:[], disenosCliente:[], maquileros:[], clientes:[], vendedores:[], consecutivo:null, guardando:false };
 let _did = 0;
 
 async function renderNuevoPedido() {
-  formState.tipo = null; formState.disenos = []; formState.maquileros = [];
+  formState.tipo = null; formState.disenos = []; formState.disenosCliente = []; formState.maquileros = [];
   const area = document.getElementById('area-modulo');
   area.innerHTML = `
     <div class="b2-wrap">
@@ -2169,7 +2173,7 @@ async function cargarCatalogos() {
 }
 
 function selTipo(code) {
-  formState.tipo = code; formState.disenos = []; formState.maquileros = [];
+  formState.tipo = code; formState.disenos = []; formState.disenosCliente = []; formState.maquileros = [];
   document.querySelectorAll('.tarjeta-tipo').forEach(t => t.classList.toggle('activa', t.dataset.tipo === code));
   renderFormPedido();
 }
@@ -2323,8 +2327,8 @@ function renderBloqueTela(conProc) {
     <div class="form-grupo"><label>Tipo de tela <span class="req">*</span></label>
       <input type="text" id="f-tela-tipo" list="lista-telas" placeholder="Ej: Mini Jersey 160g" />
       <datalist id="lista-telas"><option value="Mini Jersey 160g"/><option value="Burda 220g"/><option value="Pique 200g"/><option value="Lycra 240g"/><option value="Microfibra"/></datalist></div>
-    <div class="form-grupo"><label>Ancho (cm) <span class="req">*</span></label>
-      <input type="number" id="f-tela-ancho" min="1" step="1" placeholder="160" /></div>
+    <div class="form-grupo"><label>Ancho</label>
+      <div class="aviso-azul" style="margin-top:0;">El ancho lo registra Almacén al recibir los rollos.</div></div>
   </div></div>`;
 }
 
@@ -2385,6 +2389,7 @@ function renderResumen() {
 
 function enlazarFormPedido() {
   document.getElementById('btn-nvo-cli')?.addEventListener('click', modalNuevoCli);
+  document.getElementById('f-cli')?.addEventListener('change', e => cargarDisenosDelClienteParaPedido(e.target.value));
   document.getElementById('btn-cancel-ped')?.addEventListener('click', renderNuevoPedido);
   document.getElementById('btn-enviar-ped')?.addEventListener('click', enviarPedido);
   document.getElementById('btn-add-dis')?.addEventListener('click', agregarDis);
@@ -2433,9 +2438,15 @@ function enlazarFormPedido() {
 
 function agregarDis() {
   const id = ++_did;
-  formState.disenos.push({ id, nombre:'', imagen_url:'', metros:0, tallas:{} });
+  formState.disenos.push({ id, diseno_id:'', nombre:'', imagen_url:'', metros:0, tallas:{}, observaciones:'' });
   TALLAS.forEach(t => formState.disenos[formState.disenos.length-1].tallas[t]=0);
   renderDisenos();
+}
+
+function opcionesDisenosCliente(d){
+  const base=['<option value="">Diseño nuevo / subir imagen...</option>'];
+  (formState.disenosCliente||[]).forEach(x=>base.push(`<option value="${x.id}" ${String(d.diseno_id)===String(x.id)?'selected':''}>${escapar(x.nombre||x.sku||'Sin nombre')} ${x.sku?'· '+escapar(x.sku):''}</option>`));
+  return base.join('');
 }
 
 function renderDisenos() {
@@ -2443,15 +2454,18 @@ function renderDisenos() {
   if (!cont) return;
   if (!formState.disenos.length) { cont.innerHTML = '<div class="vacio">Agrega al menos un diseño</div>'; recalcular(); return; }
   const conTallas = formState.tipo==='PTS';
+  const clienteId=document.getElementById('f-cli')?.value||'';
   let html = '';
   formState.disenos.forEach((d,idx) => {
     html += `<div class="diseno-card" data-did="${d.id}">
       <div class="titulo-fila"><h4>Diseño #${idx+1}</h4><button type="button" class="btn-quitar" data-q="${d.id}">×</button></div>
+      ${clienteId ? `<div class="form-grupo full" style="margin-bottom:10px;"><label>Seleccionar diseño existente de este cliente</label><select data-d-select="${d.id}">${opcionesDisenosCliente(d)}</select><div class="ayuda">Al elegir un diseño existente se rellenan nombre e imagen automáticamente.</div></div>` : `<div class="aviso-amarillo" style="margin-bottom:10px;">Selecciona primero el cliente para ver sus diseños guardados.</div>`}
       <div class="form-grid">
-        <div class="form-grupo"><label>Nombre / referencia</label>
-          <input type="text" data-d-nom="${d.id}" value="${escapar(d.nombre)}" placeholder="Ej: Logo frontal" /></div>
-        <div class="form-grupo"><label>URL de imagen del diseño</label>
-          <input type="text" data-d-img="${d.id}" value="${escapar(d.imagen_url)}" placeholder="https://..." /></div>
+        <div class="form-grupo"><label>Nombre / referencia <span class="req">*</span></label>
+          <input type="text" data-d-nom="${d.id}" value="${escapar(d.nombre)}" placeholder="Ej: Logo frontal, Mickey rojo, diseño v2" /></div>
+        <div class="form-grupo"><label>Subir imagen del diseño</label>
+          <input type="file" data-d-file="${d.id}" accept="image/*" />
+          <div class="ayuda">Se guarda comprimida como vista previa en el catálogo.</div></div>
         <div class="form-grupo"><label>Metros a imprimir</label>
           <input type="number" min="0" step="0.01" data-d-met="${d.id}" value="${d.metros||''}" /></div>
         <div class="form-grupo"><label>Observaciones del diseño</label>
@@ -2462,9 +2476,24 @@ function renderDisenos() {
   });
   cont.innerHTML = html;
   cont.querySelectorAll('[data-q]').forEach(b => b.addEventListener('click', () => { formState.disenos = formState.disenos.filter(d=>d.id!==parseInt(b.dataset.q)); renderDisenos(); }));
+  cont.querySelectorAll('[data-d-select]').forEach(sel => sel.addEventListener('change', e => {
+    const d=formState.disenos.find(x=>x.id===parseInt(sel.dataset.dSelect));
+    const cat=(formState.disenosCliente||[]).find(x=>String(x.id)===String(e.target.value));
+    if(d){
+      if(cat){ d.diseno_id=cat.id; d.nombre=cat.nombre||cat.sku||''; d.imagen_url=cat.imagen_url||''; }
+      else { d.diseno_id=''; }
+      renderDisenos();
+    }
+  }));
   cont.querySelectorAll('[data-d-nom]').forEach(i => i.addEventListener('input', e => { const d=formState.disenos.find(x=>x.id===parseInt(i.dataset.dNom)); if(d) d.nombre=e.target.value; }));
-  cont.querySelectorAll('[data-d-img]').forEach(i => i.addEventListener('change', e => { const d=formState.disenos.find(x=>x.id===parseInt(i.dataset.dImg)); if(d) { d.imagen_url=e.target.value; renderDisenos(); } }));
+  cont.querySelectorAll('[data-d-file]').forEach(i => i.addEventListener('change', async e => {
+    const d=formState.disenos.find(x=>x.id===parseInt(i.dataset.dFile));
+    if(!d || !e.target.files?.[0]) return;
+    try{ d.imagen_url=await archivoADataURLComprimido(e.target.files[0]); d.diseno_id=''; renderDisenos(); }
+    catch(err){ alert(err.message||err); }
+  }));
   cont.querySelectorAll('[data-d-met]').forEach(i => i.addEventListener('input', e => { const d=formState.disenos.find(x=>x.id===parseInt(i.dataset.dMet)); if(d) { d.metros=parseFloat(e.target.value)||0; recalcular(); } }));
+  cont.querySelectorAll('[data-d-obs]').forEach(i => i.addEventListener('input', e => { const d=formState.disenos.find(x=>x.id===parseInt(i.dataset.dObs)); if(d) d.observaciones=e.target.value; }));
   cont.querySelectorAll('[data-talla-val]').forEach(i => i.addEventListener('input', e => {
     const d=formState.disenos.find(x=>x.id===parseInt(i.dataset.did));
     if(d) { d.tallas[i.dataset.talla]=parseInt(e.target.value)||0; actualizarTotalTallas(d.id); recalcular(); }
@@ -2577,14 +2606,17 @@ async function enviarPedido() {
   if (!fecha) errores.push('f-fecha');
 
   const tela_tipo = document.getElementById('f-tela-tipo')?.value?.trim() || '';
-  const tela_ancho = parseFloat(document.getElementById('f-tela-ancho')?.value)||null;
+  const tela_ancho = null; // El ancho lo captura Almacén al recibir los rollos
   const cantidad = parseFloat(document.getElementById('f-cantidad')?.value)||0;
   const unidad = document.querySelector('input[name="unidad_medida"]:checked')?.value || null;
   const lado = document.querySelector('input[name="lado_sublimacion"]:checked')?.value || null;
   const propia = document.querySelector('input[name="tela_propia"]:checked')?.value === 'true';
   const precio_tela = parseFloat(document.getElementById('f-precio-tela')?.value)||0;
   const precio_sub = parseFloat(document.getElementById('f-precio-sub')?.value)||0;
-  const obs = document.getElementById('f-obs')?.value||'';
+  let obs = document.getElementById('f-obs')?.value||'';
+  const tela_llegada = document.querySelector('input[name="tela_llegada"]:checked')?.value || '';
+  if (!propia && tela_llegada === 'chofer') obs = observacionesConRecoleccion(obs, 'pendiente');
+  else obs = quitarMarcadoresInternos(obs);
 
   if (['SUB','PTS'].includes(tipo)) {
     if (!tela_tipo) errores.push('f-tela-tipo');
@@ -2613,7 +2645,7 @@ async function enviarPedido() {
                          tipo==='PI' ? cantidad*(parseFloat(document.getElementById('f-precio-pi')?.value)||0) :
                          tipo==='MUE' && document.querySelector('input[name="mue_costo"]:checked')?.value==='si' ? parseFloat(document.getElementById('f-mue-precio')?.value)||0 : 0;
 
-    const { data: ped, error: pe } = await supa.from('pedidos').insert({
+    const payloadPedido = {
       folio, tipo, cliente_id, vendedor_id,
       etapa_actual: 'Captura', estado: 'pendiente', prioridad: 3,
       fecha_captura: new Date().toISOString().slice(0,10),
@@ -2621,11 +2653,24 @@ async function enviarPedido() {
       precio_tela, precio_sublimado: precio_sub, precio_total,
       tela_tipo: tela_tipo||null, tela_propia: propia, tela_ancho,
       unidad_medida: unidad, lado_sublimacion: lado, observaciones: obs,
-    }).select().single();
+    };
+    const { data: ped, error: pe } = await insertarPedidoFlexible(payloadPedido);
     if (pe) throw pe;
 
     if (formState.disenos.length && ['SUB','PTS','MUE'].includes(tipo)) {
-      const filasDis = formState.disenos.map((d,i) => ({ pedido_id:ped.id, imagen_url:d.imagen_url||null, metros_solicitados:parseFloat(d.metros)||0, orden:i+1 }));
+      const filasDis = [];
+      for (let i=0;i<formState.disenos.length;i++){
+        const d=formState.disenos[i];
+        let diseno_id=d.diseno_id||null;
+        if(!diseno_id && (d.nombre || d.imagen_url) && cliente_id){
+          const skuDis=`${folio}-D${i+1}`;
+          try{
+            const {data:cat}=await supa.from('disenos').insert({cliente_id, sku:skuDis, nombre:d.nombre||`Diseño ${i+1}`, imagen_url:d.imagen_url||null}).select().single();
+            diseno_id=cat?.id||null;
+          }catch(e){}
+        }
+        filasDis.push({ pedido_id:ped.id, diseno_id, imagen_url:d.imagen_url||null, metros_solicitados:parseFloat(d.metros)||0, orden:i+1 });
+      }
       const { data: dIns } = await supa.from('pedido_disenos').insert(filasDis).select();
       if (tipo==='PTS' && dIns) {
         const filasTal = [];
@@ -2882,6 +2927,72 @@ async function cambiarActivoUsuario(id,activo){
   catch(e){ mostrarToast('❌ Error: '+e.message,'error'); }
 }
 
+
+/* ===== VENDEDORES ===== */
+async function renderVendedores(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1100px;"><div class="toolbar-modulo"><div><h2>🤝 Vendedores</h2><p>Alta y edición rápida de vendedores. Se guardan en la tabla usuarios con rol vendedor.</p></div><button class="btn-primario-sm" id="btn-nuevo-vendedor">+ Nuevo vendedor</button></div><div class="tarjeta"><div id="vendedores-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando vendedores...</div></div></div></div>`;
+  document.getElementById('btn-nuevo-vendedor').addEventListener('click',()=>abrirFormularioVendedor());
+  await cargarVendedoresModulo();
+}
+async function cargarVendedoresModulo(){
+  try{ const {data,error}=await supa.from('usuarios').select('*').in('rol',['vendedor','Vendedor']).order('nombre'); if(error) throw error; estado.vendedoresModulo=data||[]; }
+  catch(e){ mostrarToast('❌ Error cargando vendedores: '+e.message,'error'); estado.vendedoresModulo=[]; }
+  renderTablaVendedores();
+}
+function renderTablaVendedores(){
+  const cont=document.getElementById('vendedores-cont'); if(!cont) return;
+  const lista=estado.vendedoresModulo||[];
+  if(!lista.length){ cont.innerHTML='<div class="vacio">No hay vendedores registrados.</div>'; return; }
+  cont.innerHTML=`<div class="scroll-x"><table class="tabla"><thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${lista.map(v=>`<tr><td><strong>${escapar(v.nombre||'—')}</strong></td><td>${escapar(v.email||'—')}</td><td>${v.activo===false?'<span class="badge rojo">Inactivo</span>':'<span class="badge verde">Activo</span>'}</td><td><div class="acciones-tabla"><button class="btn-secundario" onclick="abrirFormularioVendedor('${v.id}')">Editar</button><button class="btn-danger-sm" onclick="cambiarActivoVendedor('${v.id}',${v.activo===false?'true':'false'})">${v.activo===false?'Activar':'Desactivar'}</button></div></td></tr>`).join('')}</tbody></table></div>`;
+}
+function abrirFormularioVendedor(id){
+  const v=(estado.vendedoresModulo||[]).find(x=>String(x.id)===String(id))||{};
+  document.getElementById('modal-titulo').textContent=id?'Editar vendedor':'Nuevo vendedor';
+  document.getElementById('modal-body').innerHTML=`<form id="form-vendedor"><div class="form-inline-grid"><div class="form-grupo"><label>Nombre <span class="req">*</span></label><input type="text" id="vd-nombre" value="${escapar(v.nombre||'')}" required></div><div class="form-grupo"><label>Email</label><input type="email" id="vd-email" value="${escapar(v.email||'')}"></div></div><div class="aviso-azul">Esto agrega al vendedor a la lista de captura de pedidos. Si también necesita entrar a la app, debe existir en Supabase Auth.</div><div class="acciones-finales"><button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button><button class="btn-success" type="submit">Guardar vendedor</button></div></form>`;
+  document.getElementById('form-vendedor').addEventListener('submit',e=>guardarVendedor(e,id));
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+async function guardarVendedor(e,id){
+  e.preventDefault();
+  const payload={nombre:valor('vd-nombre'),email:valor('vd-email')||null,rol:'vendedor',activo:true};
+  if(!payload.nombre){ alert('El nombre es obligatorio'); return; }
+  try{ const r=id?await supa.from('usuarios').update(payload).eq('id',id):await supa.from('usuarios').insert(payload); if(r.error) throw r.error; cerrarModal(); mostrarToast('✅ Vendedor guardado'); await cargarVendedoresModulo(); }
+  catch(e){ mostrarToast('❌ Error guardando vendedor: '+e.message,'error'); }
+}
+async function cambiarActivoVendedor(id,activo){
+  if(!confirm(activo?'¿Activar vendedor?':'¿Desactivar vendedor?')) return;
+  try{ const {error}=await supa.from('usuarios').update({activo}).eq('id',id); if(error) throw error; mostrarToast('✅ Vendedor actualizado'); await cargarVendedoresModulo(); }
+  catch(e){ mostrarToast('❌ Error: '+e.message,'error'); }
+}
+
+/* ===== RECOLECCIONES CHOFER ===== */
+async function renderRecolecciones(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1200px;"><div class="toolbar-modulo"><div><h2>🚚 Recolecciones pendientes</h2><p>Pedidos donde la tela es del cliente y el chofer debe recogerla.</p></div><button class="btn-secundario" id="btn-ref-recolecciones">Actualizar</button></div><div class="tarjeta"><div id="recolecciones-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando recolecciones...</div></div></div></div>`;
+  document.getElementById('btn-ref-recolecciones').addEventListener('click',cargarRecoleccionesModulo);
+  await cargarRecoleccionesModulo();
+}
+async function cargarRecoleccionesModulo(){
+  try{ const {data,error}=await supa.from('pedidos').select('*').order('creado_en',{ascending:false}); if(error) throw error; estado.recolecciones=(data||[]).filter(p=>obtenerEstadoRecoleccion(p.observaciones)==='pendiente'); }
+  catch(e){ mostrarToast('❌ Error cargando recolecciones: '+e.message,'error'); estado.recolecciones=[]; }
+  await asegurarClientesCargados();
+  renderTablaRecolecciones();
+}
+function renderTablaRecolecciones(){
+  const cont=document.getElementById('recolecciones-cont'); if(!cont) return;
+  const lista=estado.recolecciones||[];
+  if(!lista.length){ cont.innerHTML='<div class="vacio">No hay recolecciones pendientes.</div>'; return; }
+  cont.innerHTML=`<div class="scroll-x"><table class="tabla"><thead><tr><th>Folio</th><th>Cliente</th><th>Tipo</th><th>Fecha captura</th><th>Observaciones</th><th>Acción</th></tr></thead><tbody>${lista.map(p=>`<tr><td><strong style="color:var(--primary)">${escapar(p.folio)}</strong></td><td>${escapar(nombreClientePorId(p.cliente_id))}</td><td>${escapar(p.tipo||'—')}</td><td>${formatearFechaCorta(p.fecha_captura||p.creado_en)}</td><td>${escapar(quitarMarcadoresInternos(p.observaciones)||'—')}</td><td><button class="btn-success" style="padding:7px 12px;font-size:12px;" onclick="marcarRecolectado('${p.id}')">Marcar recolectado</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+async function marcarRecolectado(id){
+  const p=(estado.recolecciones||[]).find(x=>String(x.id)===String(id)); if(!p) return;
+  if(!confirm('¿Marcar esta tela como recolectada?')) return;
+  const obs=observacionesConRecoleccion(quitarMarcadoresInternos(p.observaciones), 'recolectado:'+new Date().toLocaleString('es-MX'));
+  try{ const {error}=await supa.from('pedidos').update({observaciones:obs}).eq('id',id); if(error) throw error; mostrarToast('✅ Recolección marcada como recolectada'); await cargarRecoleccionesModulo(); }
+  catch(e){ mostrarToast('❌ Error: '+e.message,'error'); }
+}
+
 /* ===== CATÁLOGO DE DISEÑOS ===== */
 async function renderDisenosCatalogo(){
   const area=document.getElementById('area-modulo');
@@ -2931,7 +3042,7 @@ async function abrirFormularioDiseno(id){
     <div class="form-grupo"><label>Cliente <span class="req">*</span></label><select id="di-cliente" required><option value="">Seleccionar...</option>${estado.clientes.map(c=>`<option value="${c.id}" ${String(d.cliente_id)===String(c.id)?'selected':''}>${escapar(c.nombre)}</option>`).join('')}</select></div>
     <div class="form-grupo"><label>SKU <span class="req">*</span></label><input type="text" id="di-sku" value="${escapar(d.sku||'')}" required></div>
     <div class="form-grupo"><label>Nombre <span class="req">*</span></label><input type="text" id="di-nombre" value="${escapar(d.nombre||'')}" required></div>
-    <div class="form-grupo full"><label>URL de imagen</label><input type="text" id="di-imagen" value="${escapar(d.imagen_url||'')}" placeholder="https://..."></div>
+    <div class="form-grupo full"><label>Imagen actual</label><input type="hidden" id="di-imagen" value="${escapar(d.imagen_url||'')}"><input type="file" id="di-file" accept="image/*"><div class="ayuda">Puedes subir una imagen nueva; se guardará comprimida como vista previa.</div>${d.imagen_url?`<img class="preview-img" src="${escapar(d.imagen_url)}" onerror="this.style.display='none'" />`:''}</div>
   </div><div class="acciones-finales"><button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button><button class="btn-success" type="submit">Guardar diseño</button></div></form>`;
   document.getElementById('di-cliente').addEventListener('change',async e=>{ if(!id&&!valor('di-sku')) document.getElementById('di-sku').value=await sugerirSkuDiseno(e.target.value); });
   document.getElementById('form-diseno').addEventListener('submit',e=>guardarDiseno(e,id));
@@ -2940,7 +3051,10 @@ async function abrirFormularioDiseno(id){
 
 async function guardarDiseno(e,id){
   e.preventDefault();
-  const payload={cliente_id:valor('di-cliente'),sku:valor('di-sku'),nombre:valor('di-nombre'),imagen_url:valor('di-imagen')||null};
+  let img=valor('di-imagen')||null;
+  const file=document.getElementById('di-file')?.files?.[0];
+  if(file) img=await archivoADataURLComprimido(file);
+  const payload={cliente_id:valor('di-cliente'),sku:valor('di-sku'),nombre:valor('di-nombre'),imagen_url:img};
   if(!payload.cliente_id||!payload.sku||!payload.nombre){ alert('Cliente, SKU y nombre son obligatorios'); return; }
   try{ const r=id?await supa.from('disenos').update(payload).eq('id',id):await supa.from('disenos').insert(payload); if(r.error) throw r.error; cerrarModal(); mostrarToast('✅ Diseño guardado'); await cargarDisenosCatalogo(); }
   catch(e){ mostrarToast('❌ Error guardando diseño: '+e.message,'error'); }
