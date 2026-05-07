@@ -2724,3 +2724,1400 @@ document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
+/* ============================================
+   BLOQUE 4 — MÓDULOS ADICIONALES
+   Clientes, Usuarios, Diseños, Control Papel,
+   Documentos imprimibles
+   ============================================ */
+ 
+/* ============================================
+   MÓDULO CLIENTES
+   ============================================ */
+async function renderClientes() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:1000px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+          <h2 class="b2-titulo">👥 Clientes</h2>
+          <p class="b2-subtitulo">Gestiona los clientes de la fábrica.</p>
+        </div>
+        <button class="btn-success" id="btn-nuevo-cliente-mod">+ Nuevo cliente</button>
+      </div>
+      <div class="filtros-fila">
+        <input type="text" id="cli-bus" placeholder="Buscar por nombre, teléfono o email..." style="min-width:300px;" />
+      </div>
+      <div class="tarjeta">
+        <div id="clientes-tabla-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando...</div></div>
+      </div>
+    </div>`;
+ 
+  document.getElementById('btn-nuevo-cliente-mod').addEventListener('click', () => abrirFormCliente(null));
+  document.getElementById('cli-bus').addEventListener('input', e => filtrarClientes(e.target.value));
+  await cargarClientes();
+}
+ 
+let _todosClientes = [];
+ 
+async function cargarClientes() {
+  try {
+    const { data, error } = await supa.from('clientes').select('id,nombre,telefono,email,direccion,activo,creado_en').order('nombre');
+    if (error) throw error;
+    _todosClientes = data || [];
+    renderTablaClientes(_todosClientes);
+  } catch(e) {
+    document.getElementById('clientes-tabla-cont').innerHTML = `<div class="vacio">Error cargando clientes: ${e.message}</div>`;
+  }
+}
+ 
+function filtrarClientes(busqueda) {
+  const b = busqueda.toLowerCase();
+  const filtrados = _todosClientes.filter(c =>
+    (c.nombre||'').toLowerCase().includes(b) ||
+    (c.telefono||'').toLowerCase().includes(b) ||
+    (c.email||'').toLowerCase().includes(b)
+  );
+  renderTablaClientes(filtrados);
+}
+ 
+function renderTablaClientes(clientes) {
+  const cont = document.getElementById('clientes-tabla-cont');
+  if (!clientes.length) { cont.innerHTML = '<div class="vacio">No hay clientes registrados.</div>'; return; }
+  let html = `<table class="tabla"><thead><tr>
+    <th>Nombre</th><th>Teléfono</th><th>Email</th><th>Estado</th><th>Acciones</th>
+  </tr></thead><tbody>`;
+  clientes.forEach(c => {
+    html += `<tr>
+      <td><strong>${escapar(c.nombre)}</strong></td>
+      <td>${escapar(c.telefono||'—')}</td>
+      <td>${escapar(c.email||'—')}</td>
+      <td><span class="badge ${c.activo!==false?'verde':'gris'}">${c.activo!==false?'Activo':'Inactivo'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn-mini" style="background:var(--primary);" data-edit-cli="${c.id}">✏️ Editar</button>
+        <button class="btn-mini" style="background:var(--info);" data-hist-cli="${c.id}">📦 Pedidos</button>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-edit-cli]').forEach(b => b.addEventListener('click', () => abrirFormCliente(b.dataset.editCli)));
+  cont.querySelectorAll('[data-hist-cli]').forEach(b => b.addEventListener('click', () => verPedidosCliente(b.dataset.histCli)));
+}
+ 
+function abrirFormCliente(id) {
+  const cliente = id ? _todosClientes.find(c => String(c.id) === String(id)) : null;
+  document.getElementById('modal-titulo').textContent = cliente ? 'Editar cliente' : 'Nuevo cliente';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo full"><label>Nombre <span class="req">*</span></label>
+        <input type="text" id="fc-nombre" value="${escapar(cliente?.nombre||'')}" /></div>
+      <div class="form-grupo"><label>Teléfono</label>
+        <input type="text" id="fc-tel" value="${escapar(cliente?.telefono||'')}" /></div>
+      <div class="form-grupo"><label>Email</label>
+        <input type="email" id="fc-email" value="${escapar(cliente?.email||'')}" /></div>
+      <div class="form-grupo full"><label>Dirección</label>
+        <input type="text" id="fc-dir" value="${escapar(cliente?.direccion||'')}" /></div>
+      ${cliente ? `<div class="form-grupo full"><label>Estado</label>
+        <div class="opciones-radio">
+          <label><input type="radio" name="fc-activo" value="true" ${cliente.activo!==false?'checked':''} /> Activo</label>
+          <label><input type="radio" name="fc-activo" value="false" ${cliente.activo===false?'checked':''} /> Inactivo</label>
+        </div></div>` : ''}
+    </div>
+    <div class="acciones-finales">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-success" id="fc-guar">Guardar</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.getElementById('fc-guar').addEventListener('click', () => guardarCliente(id));
+}
+ 
+async function guardarCliente(id) {
+  const nombre = document.getElementById('fc-nombre').value.trim();
+  if (!nombre) { alert('El nombre es obligatorio'); return; }
+  const payload = {
+    nombre,
+    telefono: document.getElementById('fc-tel').value.trim() || null,
+    email: document.getElementById('fc-email').value.trim() || null,
+    direccion: document.getElementById('fc-dir').value.trim() || null,
+  };
+  if (id) {
+    const activo = document.querySelector('input[name="fc-activo"]:checked')?.value === 'true';
+    payload.activo = activo;
+  }
+  try {
+    if (id) {
+      const { error } = await supa.from('clientes').update(payload).eq('id', id);
+      if (error) throw error;
+    } else {
+      const { error } = await supa.from('clientes').insert(payload);
+      if (error) throw error;
+    }
+    cerrarModal();
+    mostrarToast('✅ Cliente guardado correctamente');
+    await cargarClientes();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+ 
+async function verPedidosCliente(clienteId) {
+  const cli = _todosClientes.find(c => String(c.id) === String(clienteId));
+  document.getElementById('modal-titulo').textContent = `Pedidos de ${cli?.nombre||'cliente'}`;
+  document.getElementById('modal-body').innerHTML = '<div class="cargando-centro"><span class="spinner"></span></div>';
+  document.getElementById('modal-overlay').classList.add('visible');
+  try {
+    const { data, error } = await supa.from('pedidos')
+      .select('id,folio,tipo,etapa_actual,estado,fecha_comprometida,precio_total')
+      .eq('cliente_id', clienteId)
+      .order('creado_en', { ascending: false });
+    if (error) throw error;
+    if (!data?.length) { document.getElementById('modal-body').innerHTML = '<div class="vacio">Este cliente no tiene pedidos.</div>'; return; }
+    let html = '<table class="tabla"><thead><tr><th>Folio</th><th>Tipo</th><th>Etapa</th><th>Entrega</th><th>Estado</th></tr></thead><tbody>';
+    data.forEach(p => {
+      html += `<tr><td><strong style="color:var(--primary)">${escapar(p.folio)}</strong></td>
+        <td><span class="badge tipo-${(p.tipo||'').toLowerCase()}">${p.tipo||'—'}</span></td>
+        <td>${escapar(p.etapa_actual||'—')}</td>
+        <td>${formatearFechaCorta(p.fecha_comprometida)}</td>
+        <td>${badgeEstado(p.estado)}</td></tr>`;
+    });
+    document.getElementById('modal-body').innerHTML = html + '</tbody></table>';
+  } catch(e) { document.getElementById('modal-body').innerHTML = `<div class="vacio">Error: ${e.message}</div>`; }
+}
+ 
+/* ============================================
+   MÓDULO USUARIOS
+   ============================================ */
+async function renderUsuarios() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:900px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+          <h2 class="b2-titulo">👤 Usuarios</h2>
+          <p class="b2-subtitulo">Gestiona los usuarios y sus roles.</p>
+        </div>
+        <button class="btn-success" id="btn-nuevo-usuario">+ Nuevo usuario</button>
+      </div>
+      <div class="tarjeta">
+        <div id="usuarios-tabla-cont"><div class="cargando-centro"><span class="spinner"></span></div></div>
+      </div>
+    </div>`;
+  document.getElementById('btn-nuevo-usuario').addEventListener('click', () => abrirFormUsuario(null));
+  await cargarUsuarios();
+}
+ 
+let _todosUsuarios = [];
+ 
+async function cargarUsuarios() {
+  try {
+    const { data, error } = await supa.from('usuarios').select('id,email,nombre,rol,activo,creado_en').order('nombre');
+    if (error) throw error;
+    _todosUsuarios = data || [];
+    renderTablaUsuarios();
+  } catch(e) {
+    document.getElementById('usuarios-tabla-cont').innerHTML = `<div class="vacio">Error: ${e.message}</div>`;
+  }
+}
+ 
+const ROLES_DISPONIBLES = ['director','vendedor','impresor','calandra','corte','costura','almacen','chofer'];
+const ROLES_LABELS = {
+  'director':'Director','vendedor':'Vendedor','impresor':'Impresor',
+  'calandra':'Calandra','corte':'Corte','costura':'Costura',
+  'almacen':'Almacén','chofer':'Chofer'
+};
+ 
+function renderTablaUsuarios() {
+  const cont = document.getElementById('usuarios-tabla-cont');
+  if (!_todosUsuarios.length) { cont.innerHTML = '<div class="vacio">No hay usuarios registrados.</div>'; return; }
+  let html = `<table class="tabla"><thead><tr>
+    <th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th>
+  </tr></thead><tbody>`;
+  _todosUsuarios.forEach(u => {
+    html += `<tr>
+      <td><strong>${escapar(u.nombre||'—')}</strong></td>
+      <td>${escapar(u.email||'—')}</td>
+      <td><span class="badge azul">${ROLES_LABELS[u.rol]||u.rol||'—'}</span></td>
+      <td><span class="badge ${u.activo!==false?'verde':'gris'}">${u.activo!==false?'Activo':'Inactivo'}</span></td>
+      <td><button class="btn-mini" style="background:var(--primary);" data-edit-usr="${u.id}">✏️ Editar</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-edit-usr]').forEach(b => b.addEventListener('click', () => abrirFormUsuario(b.dataset.editUsr)));
+}
+ 
+function abrirFormUsuario(id) {
+  const usr = id ? _todosUsuarios.find(u => String(u.id) === String(id)) : null;
+  const opcRoles = ROLES_DISPONIBLES.map(r => `<option value="${r}" ${usr?.rol===r?'selected':''}>${ROLES_LABELS[r]}</option>`).join('');
+  document.getElementById('modal-titulo').textContent = usr ? 'Editar usuario' : 'Nuevo usuario';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo full"><label>Nombre completo <span class="req">*</span></label>
+        <input type="text" id="fu-nombre" value="${escapar(usr?.nombre||'')}" /></div>
+      <div class="form-grupo"><label>Email <span class="req">*</span></label>
+        <input type="email" id="fu-email" value="${escapar(usr?.email||'')}" ${usr?'disabled':''} /></div>
+      <div class="form-grupo"><label>Rol <span class="req">*</span></label>
+        <select id="fu-rol">${opcRoles}</select></div>
+      ${!usr ? `<div class="form-grupo full"><label>Contraseña temporal <span class="req">*</span></label>
+        <input type="password" id="fu-pass" placeholder="Mínimo 6 caracteres" /></div>` : ''}
+      ${usr ? `<div class="form-grupo full"><label>Estado</label>
+        <div class="opciones-radio">
+          <label><input type="radio" name="fu-activo" value="true" ${usr.activo!==false?'checked':''} /> Activo</label>
+          <label><input type="radio" name="fu-activo" value="false" ${usr.activo===false?'checked':''} /> Inactivo</label>
+        </div></div>` : ''}
+    </div>
+    <div class="aviso-amarillo" style="margin-top:10px;">
+      ⚠️ Para crear usuarios nuevos, también debes crearlos en Supabase Authentication (supabase.com → Authentication → Users).
+    </div>
+    <div class="acciones-finales">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-success" id="fu-guar">Guardar</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.getElementById('fu-guar').addEventListener('click', () => guardarUsuario(id));
+}
+ 
+async function guardarUsuario(id) {
+  const nombre = document.getElementById('fu-nombre').value.trim();
+  const rol = document.getElementById('fu-rol').value;
+  if (!nombre || !rol) { alert('Nombre y rol son obligatorios'); return; }
+  const payload = { nombre, rol };
+  if (id) {
+    payload.activo = document.querySelector('input[name="fu-activo"]:checked')?.value === 'true';
+  }
+  try {
+    if (id) {
+      const { error } = await supa.from('usuarios').update(payload).eq('id', id);
+      if (error) throw error;
+    } else {
+      const email = document.getElementById('fu-email').value.trim();
+      if (!email) { alert('Email es obligatorio'); return; }
+      const { error } = await supa.from('usuarios').insert({ ...payload, email, activo: true });
+      if (error) throw error;
+    }
+    cerrarModal();
+    mostrarToast('✅ Usuario guardado');
+    await cargarUsuarios();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+ 
+/* ============================================
+   CATÁLOGO DE DISEÑOS
+   ============================================ */
+async function renderDisenos() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:1100px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+          <h2 class="b2-titulo">🎨 Catálogo de Diseños</h2>
+          <p class="b2-subtitulo">Organizado por cliente. SKU formato: {INICIALES_CLIENTE}-{CONSECUTIVO}</p>
+        </div>
+        <button class="btn-success" id="btn-nuevo-diseno">+ Nuevo diseño</button>
+      </div>
+      <div class="filtros-fila">
+        <input type="text" id="dis-bus" placeholder="Buscar por SKU o nombre..." />
+        <select id="dis-cli-fil"><option value="">Todos los clientes</option></select>
+      </div>
+      <div id="disenos-grid-cont"><div class="cargando-centro"><span class="spinner"></span></div></div>
+    </div>`;
+ 
+  document.getElementById('btn-nuevo-diseno').addEventListener('click', () => abrirFormDiseno(null));
+  document.getElementById('dis-bus').addEventListener('input', e => filtrarDisenos());
+  document.getElementById('dis-cli-fil').addEventListener('change', () => filtrarDisenos());
+ 
+  await Promise.all([cargarDisenosCatalogo(), cargarClientesParaFiltro()]);
+}
+ 
+let _todosDisenos = [];
+ 
+async function cargarClientesParaFiltro() {
+  try {
+    if (!_todosClientes.length) {
+      const { data } = await supa.from('clientes').select('id,nombre').order('nombre');
+      _todosClientes = data || [];
+    }
+    const sel = document.getElementById('dis-cli-fil');
+    if (sel) {
+      _todosClientes.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id; opt.textContent = c.nombre;
+        sel.appendChild(opt);
+      });
+    }
+  } catch(e) {}
+}
+ 
+async function cargarDisenosCatalogo() {
+  try {
+    const { data, error } = await supa.from('disenos').select('id,sku,nombre,cliente_id,imagen_url,creado_en').order('sku');
+    if (error) throw error;
+    _todosDisenos = data || [];
+    renderGridDisenos(_todosDisenos);
+  } catch(e) {
+    document.getElementById('disenos-grid-cont').innerHTML = `<div class="vacio">Error: ${e.message}</div>`;
+  }
+}
+ 
+function filtrarDisenos() {
+  const bus = (document.getElementById('dis-bus')?.value||'').toLowerCase();
+  const cliId = document.getElementById('dis-cli-fil')?.value||'';
+  const filtrados = _todosDisenos.filter(d => {
+    if (cliId && String(d.cliente_id) !== String(cliId)) return false;
+    if (bus && !(d.sku||'').toLowerCase().includes(bus) && !(d.nombre||'').toLowerCase().includes(bus)) return false;
+    return true;
+  });
+  renderGridDisenos(filtrados);
+}
+ 
+function renderGridDisenos(disenos) {
+  const cont = document.getElementById('disenos-grid-cont');
+  if (!disenos.length) { cont.innerHTML = '<div class="vacio">No hay diseños registrados.</div>'; return; }
+  const mapaCli = {};
+  _todosClientes.forEach(c => mapaCli[c.id] = c);
+ 
+  // Agrupar por cliente
+  const porCliente = {};
+  disenos.forEach(d => {
+    const key = d.cliente_id || 'sin-cliente';
+    if (!porCliente[key]) porCliente[key] = [];
+    porCliente[key].push(d);
+  });
+ 
+  let html = '';
+  Object.entries(porCliente).forEach(([cliId, dises]) => {
+    const cli = mapaCli[cliId];
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);">
+        📁 ${cli?.nombre||'Sin cliente'} (${dises.length} diseños)
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">`;
+    dises.forEach(d => {
+      html += `<div style="background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;" data-edit-dis="${d.id}">
+        <div style="height:140px;background:#F9FAFB;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+          ${d.imagen_url
+            ? `<img src="${escapar(d.imagen_url)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<span style=font-size:32px>🎨</span>'" />`
+            : '<span style="font-size:32px;">🎨</span>'}
+        </div>
+        <div style="padding:8px 10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--primary);font-family:monospace;">${escapar(d.sku||'—')}</div>
+          <div style="font-size:12px;color:var(--text);margin-top:2px;">${escapar(d.nombre||'Sin nombre')}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-edit-dis]').forEach(el => el.addEventListener('click', () => abrirFormDiseno(el.dataset.editDis)));
+}
+ 
+function generarSkuDiseno(clienteId) {
+  const cli = _todosClientes.find(c => String(c.id) === String(clienteId));
+  if (!cli) return 'XX-001';
+  const partes = (cli.nombre||'').trim().split(/\s+/);
+  let iniciales = (partes[0]?.[0]||'X').toUpperCase() + (partes[1]?.[0]||'X').toUpperCase();
+  const consec = (_todosDisenos.length + 1).toString().padStart(3,'0');
+  return `${iniciales}-${consec}`;
+}
+ 
+function abrirFormDiseno(id) {
+  const dis = id ? _todosDisenos.find(d => String(d.id) === String(id)) : null;
+  const opcCli = ['<option value="">Selecciona cliente...</option>']
+    .concat(_todosClientes.map(c => `<option value="${c.id}" ${String(dis?.cliente_id)===String(c.id)?'selected':''}>${escapar(c.nombre)}</option>`)).join('');
+  document.getElementById('modal-titulo').textContent = dis ? 'Editar diseño' : 'Nuevo diseño';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo full"><label>Cliente <span class="req">*</span></label>
+        <select id="fd-cli">${opcCli}</select></div>
+      <div class="form-grupo"><label>SKU</label>
+        <input type="text" id="fd-sku" value="${escapar(dis?.sku||'')}" placeholder="Se genera automáticamente" /></div>
+      <div class="form-grupo"><label>Nombre del diseño</label>
+        <input type="text" id="fd-nombre" value="${escapar(dis?.nombre||'')}" placeholder="Ej: Flores verano 2026" /></div>
+      <div class="form-grupo full"><label>URL de imagen</label>
+        <input type="text" id="fd-img" value="${escapar(dis?.imagen_url||'')}" placeholder="https://..." />
+        <div class="ayuda">Pega el link directo de la imagen del diseño</div></div>
+      <div class="form-grupo full" id="fd-preview-cont">
+        ${dis?.imagen_url ? `<img src="${escapar(dis.imagen_url)}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display='none'" />` : ''}
+      </div>
+    </div>
+    <div class="acciones-finales">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-success" id="fd-guar">Guardar</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('visible');
+ 
+  document.getElementById('fd-cli').addEventListener('change', e => {
+    const sku = document.getElementById('fd-sku');
+    if (sku && !dis) sku.value = generarSkuDiseno(e.target.value);
+  });
+  document.getElementById('fd-img').addEventListener('change', e => {
+    const prev = document.getElementById('fd-preview-cont');
+    if (prev && e.target.value) prev.innerHTML = `<img src="${escapar(e.target.value)}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display='none'" />`;
+  });
+  document.getElementById('fd-guar').addEventListener('click', () => guardarDiseno(id));
+}
+ 
+async function guardarDiseno(id) {
+  const cliente_id = document.getElementById('fd-cli').value;
+  if (!cliente_id) { alert('Selecciona un cliente'); return; }
+  let sku = document.getElementById('fd-sku').value.trim();
+  if (!sku) sku = generarSkuDiseno(cliente_id);
+  const payload = {
+    cliente_id,
+    sku,
+    nombre: document.getElementById('fd-nombre').value.trim() || null,
+    imagen_url: document.getElementById('fd-img').value.trim() || null,
+  };
+  try {
+    if (id) {
+      const { error } = await supa.from('disenos').update(payload).eq('id', id);
+      if (error) throw error;
+    } else {
+      const { error } = await supa.from('disenos').insert(payload);
+      if (error) throw error;
+    }
+    cerrarModal();
+    mostrarToast('✅ Diseño guardado');
+    await cargarDisenosCatalogo();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+ 
+/* ============================================
+   CONTROL DE PAPEL DE IMPRESIÓN
+   ============================================ */
+async function renderControlPapel() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:900px;">
+      <h2 class="b2-titulo">🗞️ Control de Papel de Impresión</h2>
+      <p class="b2-subtitulo">Registra qué pedidos se imprimieron en cada rollo de papel.</p>
+      <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;">
+        <button class="btn-success" id="btn-nuevo-rollo-papel">+ Nuevo rollo de papel</button>
+      </div>
+      <div id="rollos-papel-cont"><div class="cargando-centro"><span class="spinner"></span></div></div>
+    </div>`;
+  document.getElementById('btn-nuevo-rollo-papel').addEventListener('click', abrirFormNuevoRollo);
+  await cargarRollosPapel();
+}
+ 
+let _rollosPapel = [];
+ 
+async function cargarRollosPapel() {
+  try {
+    const { data, error } = await supa.from('rollos_papel').select('id,numero_rollo,ancho_cm,metros_totales,metros_usados,activo,creado_en').order('creado_en', { ascending: false });
+    if (error) throw error;
+    _rollosPapel = data || [];
+    await renderRollosPapel();
+  } catch(e) {
+    document.getElementById('rollos-papel-cont').innerHTML = `<div class="vacio">Error: ${e.message}</div>`;
+  }
+}
+ 
+async function renderRollosPapel() {
+  const cont = document.getElementById('rollos-papel-cont');
+  if (!_rollosPapel.length) { cont.innerHTML = '<div class="vacio">No hay rollos de papel registrados.</div>'; return; }
+ 
+  // Cargar uso de cada rollo
+  let controlData = [];
+  try {
+    const { data } = await supa.from('control_papel').select('id,rollo_papel_id,pedido_id,metros_usados,creado_en').order('creado_en');
+    controlData = data || [];
+  } catch(e) {}
+ 
+  const mapaPedidos = {};
+  estado.pedidos.forEach(p => mapaPedidos[p.id] = p);
+ 
+  let html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+  _rollosPapel.forEach(r => {
+    const uso = controlData.filter(c => String(c.rollo_papel_id) === String(r.id));
+    const pct = r.metros_totales > 0 ? Math.min(100, Math.round((r.metros_usados/r.metros_totales)*100)) : 0;
+    html += `<div class="rollo-papel-card">
+      <div class="rollo-papel-header">
+        <h4>Rollo #${escapar(r.numero_rollo)} · ${r.ancho_cm} cm</h4>
+        <span class="badge ${r.activo?'verde':'gris'}">${r.activo?'Activo':'Agotado'}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+        ${r.metros_usados||0} m usados de ${r.metros_totales||0} m totales
+      </div>
+      <div class="metros-bar">
+        <div class="metros-bar-fill" style="width:${pct}%;background:${pct>90?'var(--danger)':pct>70?'var(--warning)':'var(--primary)'}"></div>
+      </div>
+      ${uso.length ? `
+        <div style="margin-top:10px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Pedidos impresos en este rollo:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${uso.map(u => {
+              const p = mapaPedidos[u.pedido_id];
+              return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--primary-light);color:var(--primary);padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600;">
+                ${p?.folio||'—'} <span style="font-weight:400;color:var(--text-muted)">${u.metros_usados}m</span>
+              </span>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button class="btn-secundario" style="font-size:12px;" data-add-uso="${r.id}">+ Registrar pedido en este rollo</button>
+        ${r.activo ? `<button class="btn-secundario" style="font-size:12px;" data-agotar="${r.id}">Marcar como agotado</button>` : ''}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+ 
+  cont.querySelectorAll('[data-add-uso]').forEach(b => b.addEventListener('click', () => abrirFormUsoRollo(b.dataset.addUso)));
+  cont.querySelectorAll('[data-agotar]').forEach(b => b.addEventListener('click', async () => {
+    if (confirm('¿Marcar este rollo como agotado?')) {
+      await supa.from('rollos_papel').update({ activo: false }).eq('id', b.dataset.agotar);
+      await cargarRollosPapel();
+    }
+  }));
+}
+ 
+function abrirFormNuevoRollo() {
+  document.getElementById('modal-titulo').textContent = 'Nuevo rollo de papel';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo"><label>Número de rollo <span class="req">*</span></label>
+        <input type="text" id="rp-num" placeholder="Ej: R-045" /></div>
+      <div class="form-grupo"><label>Ancho (cm)</label>
+        <div class="opciones-radio">
+          <label><input type="radio" name="rp-ancho" value="162" checked /> 162 cm</label>
+          <label><input type="radio" name="rp-ancho" value="182" /> 182 cm</label>
+        </div></div>
+      <div class="form-grupo full"><label>Metros totales del rollo</label>
+        <input type="number" id="rp-metros" min="0" step="1" placeholder="Ej: 500" /></div>
+    </div>
+    <div class="acciones-finales">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-success" id="rp-guar">Guardar</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.getElementById('rp-guar').addEventListener('click', async () => {
+    const num = document.getElementById('rp-num').value.trim();
+    if (!num) { alert('Número de rollo obligatorio'); return; }
+    const ancho = parseFloat(document.querySelector('input[name="rp-ancho"]:checked')?.value)||162;
+    const metros = parseFloat(document.getElementById('rp-metros').value)||0;
+    try {
+      const { error } = await supa.from('rollos_papel').insert({ numero_rollo: num, ancho_cm: ancho, metros_totales: metros, metros_usados: 0, activo: true });
+      if (error) throw error;
+      cerrarModal(); mostrarToast('✅ Rollo registrado');
+      await cargarRollosPapel();
+    } catch(e) { alert('Error: '+e.message); }
+  });
+}
+ 
+function abrirFormUsoRollo(rolloPapelId) {
+  const rollo = _rollosPapel.find(r => String(r.id) === String(rolloPapelId));
+  const pedidosImpresion = estado.pedidos.filter(p => p.etapa_actual === 'Impresión' || p.estado === 'en_produccion');
+  const opcPed = ['<option value="">Selecciona pedido...</option>']
+    .concat(pedidosImpresion.map(p => `<option value="${p.id}">${escapar(p.folio)} — ${escapar(p.tipo||'')}</option>`)).join('');
+  document.getElementById('modal-titulo').textContent = `Registrar uso — Rollo ${rollo?.numero_rollo||''}`;
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo full"><label>Pedido impreso <span class="req">*</span></label>
+        <select id="uso-ped">${opcPed}</select></div>
+      <div class="form-grupo full"><label>Metros usados de este rollo <span class="req">*</span></label>
+        <input type="number" min="0" step="0.01" id="uso-metros" placeholder="0" /></div>
+    </div>
+    <div class="acciones-finales">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-success" id="uso-guar">Guardar</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.getElementById('uso-guar').addEventListener('click', async () => {
+    const pedido_id = document.getElementById('uso-ped').value;
+    const metros = parseFloat(document.getElementById('uso-metros').value)||0;
+    if (!pedido_id || !metros) { alert('Completa todos los campos'); return; }
+    try {
+      await supa.from('control_papel').insert({ rollo_papel_id: rolloPapelId, pedido_id, metros_usados: metros });
+      const nuevosUsados = (rollo?.metros_usados||0) + metros;
+      await supa.from('rollos_papel').update({ metros_usados: nuevosUsados }).eq('id', rolloPapelId);
+      cerrarModal(); mostrarToast('✅ Uso registrado');
+      await cargarRollosPapel();
+    } catch(e) { alert('Error: '+e.message); }
+  });
+}
+ /* ============================================
+   DOCUMENTOS IMPRIMIBLES
+   ============================================ */
+
+/* ---- NOTA DE SALIDA ---- */
+async function imprimirNotaSalida(pedidoId) {
+  let pedido = null, disenos = [], rollos = [], etapas = [];
+  try { const { data } = await supa.from('pedidos').select('*').eq('id', pedidoId).single(); pedido = data; } catch(e) { alert('Error cargando pedido'); return; }
+  try { const { data } = await supa.from('pedido_disenos').select('*').eq('pedido_id', pedidoId).order('orden'); disenos = data || []; } catch(e) {}
+  try { const { data } = await supa.from('packing_list_rollos').select('*').eq('pedido_id', pedidoId).order('numero_rollo'); rollos = data || []; } catch(e) {}
+  try { const { data } = await supa.from('etapas_pedido').select('*').eq('pedido_id', pedidoId).order('completado_en'); etapas = data || []; } catch(e) {}
+  if (!estado.clientes.length) { try { const { data } = await supa.from('clientes').select('id,nombre,telefono,email,direccion'); estado.clientes = data || []; } catch(e) {} }
+  const cli = estado.clientes.find(c => c.id === pedido.cliente_id);
+  const ven = (estado.vendedoresMap||{})[pedido.vendedor_id];
+  const totalMetros = rollos.reduce((a, r) => a + (parseFloat(r.metros_reales)||0), 0);
+  const etapaSalida = etapas.find(e => e.etapa === 'Almacen Salida');
+  const datosSalida = etapaSalida?.datos_json || {};
+  const notaNum = datosSalida.nota_salida || '—';
+  const metodo = datosSalida.metodo || '—';
+
+  // Calcular número de nota de salida
+  const fechaStr = new Date().toLocaleDateString('es-MX');
+
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>Nota de Salida ${pedido.folio}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px;}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+    .logo-txt{font-size:20px;font-weight:900;color:#6366F1;letter-spacing:-1px;}
+    .logo-sub{font-size:10px;color:#888;margin-top:2px;}
+    .titulo-doc{font-size:22px;font-weight:900;text-align:center;border:2px solid #111;padding:6px 20px;}
+    .folio-grande{font-size:28px;font-weight:900;color:#E53E3E;}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #333;margin-bottom:10px;}
+    .info-celda{padding:5px 8px;border-right:1px solid #333;border-bottom:1px solid #333;}
+    .info-celda:last-child{border-right:none;}
+    .info-celda label{font-size:9px;text-transform:uppercase;color:#888;display:block;margin-bottom:2px;}
+    .info-celda .val{font-weight:600;font-size:12px;}
+    .fila-checks{display:flex;gap:20px;padding:5px 8px;border:1px solid #333;border-top:none;margin-bottom:10px;font-size:11px;}
+    .check-item{display:flex;align-items:center;gap:4px;}
+    .check-box{width:12px;height:12px;border:1px solid #333;display:inline-block;}
+    .check-box.marcado{background:#111;}
+    table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+    th{background:#f0f0f0;padding:6px 8px;text-align:left;border:1px solid #333;font-size:10px;text-transform:uppercase;}
+    td{padding:5px 8px;border:1px solid #ccc;vertical-align:top;}
+    .td-num{text-align:right;}
+    .total-row td{background:#f9f9f9;font-weight:700;}
+    .totales-box{display:flex;justify-content:flex-end;margin-bottom:16px;}
+    .totales-tabla{width:260px;border-collapse:collapse;}
+    .totales-tabla td{padding:5px 10px;border:1px solid #ccc;font-size:12px;}
+    .totales-tabla .lbl{color:#666;}
+    .totales-tabla .total-final{font-weight:900;font-size:14px;background:#f0f0f0;}
+    .firmas{display:flex;gap:0;margin-top:30px;border-top:none;}
+    .firma-col{flex:1;padding:8px;border-top:1px solid #111;text-align:center;font-size:10px;color:#888;}
+    @media print{body{padding:10px;}button{display:none;}}
+  </style>
+  </head><body>
+
+  <div class="header">
+    <div>
+      <div class="logo-txt">IJ</div>
+      <div class="logo-sub">Importaciones Juanita</div>
+    </div>
+    <div style="text-align:center;">
+      <div class="titulo-doc">NOTA DE SALIDA</div>
+      <div style="font-size:10px;margin-top:4px;">FECHA: <strong>${fechaStr}</strong></div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:11px;color:#888;margin-bottom:2px;">FOLIO:</div>
+      <div class="folio-grande">${notaNum !== '—' ? notaNum : pedido.folio}</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:4px;font-size:10px;color:#888;text-align:center;">FACTURAR A: <strong style="font-size:12px;color:#111;">${escapar(cli?.nombre||'—')}</strong></div>
+
+  <div class="info-grid">
+    <div class="info-celda"><label>Entrada #</label><div class="val">${escapar(pedido.folio)}</div></div>
+    <div class="info-celda"><label>Tela</label><div class="val">${escapar(pedido.tela_tipo||'—')}</div></div>
+    <div class="info-celda"><label>Vendedor</label><div class="val">${escapar(ven?.nombre||'—')}</div></div>
+    <div class="info-celda"><label>Transporte</label><div class="val">${metodo === 'chofer' ? 'Propio' : metodo === 'paqueteria' ? 'Paquetería' : 'Recolección'}</div></div>
+  </div>
+
+  <div class="fila-checks">
+    <div class="check-item"><div class="check-box ${pedido.tipo!=='MUE'?'marcado':''}"></div> Compra</div>
+    <div class="check-item"><div class="check-box"></div> Devolución</div>
+    <div class="check-item"><div class="check-box ${pedido.tipo==='MUE'?'marcado':''}"></div> Muestra</div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Cant</th><th>U/M</th><th>Tela</th><th>Descripción</th><th style="text-align:right;">Precio</th><th style="text-align:right;">Unitario</th>
+    </tr></thead>
+    <tbody>
+      ${rollos.length ? rollos.map(r => `
+        <tr>
+          <td class="td-num">${r.metros_reales}</td>
+          <td>METROS</td>
+          <td>${escapar(pedido.tela_tipo||'—')}</td>
+          <td>${escapar(pedido.observaciones||'SUBLIMADO')}</td>
+          <td class="td-num">$${Number(pedido.precio_sublimado||0).toFixed(2)}</td>
+          <td class="td-num">$${(r.metros_reales*(pedido.precio_sublimado||0)).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+        </tr>`).join('') : `
+        <tr>
+          <td class="td-num">${totalMetros||pedido.unidad_medida}</td>
+          <td>METROS</td>
+          <td>${escapar(pedido.tela_tipo||'—')}</td>
+          <td>${escapar(pedido.observaciones||'SUBLIMADO')}</td>
+          <td class="td-num">$${Number(pedido.precio_sublimado||0).toFixed(2)}</td>
+          <td class="td-num">$${Number(pedido.precio_total||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+        </tr>`}
+      ${rollos.length > 1 ? `<tr><td colspan="3" class="td-num" style="font-size:10px;color:#888;">
+        ${rollos.map((r,i) => `${i+1}° ${r.metros_reales}m`).join(' + ')} = ${totalMetros}m
+      </td><td colspan="3"></td></tr>` : ''}
+    </tbody>
+  </table>
+
+  <div class="totales-box">
+    <table class="totales-tabla">
+      <tr><td class="lbl">Sub Total</td><td class="td-num">$${Number(pedido.precio_total||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
+      <tr><td class="lbl">Descuento</td><td class="td-num">$—</td></tr>
+      <tr class="total-final"><td>TOTAL</td><td class="td-num">$${Number(pedido.precio_total||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td></tr>
+    </table>
+  </div>
+
+  <div class="firmas">
+    <div class="firma-col">Entregué conforme</div>
+    <div class="firma-col">Recibí conforme</div>
+    <div class="firma-col">Autorizado por</div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px;">
+    <button onclick="window.print()" style="padding:8px 20px;background:#6366F1;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">🖨️ Imprimir</button>
+  </div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+/* ---- ORDEN DE CONFECCIÓN (MAQUILERO) ---- */
+async function imprimirOrdenConfeccion(pedidoId) {
+  let pedido = null, disenos = [], tallas = [];
+  try { const { data } = await supa.from('pedidos').select('*').eq('id', pedidoId).single(); pedido = data; } catch(e) { alert('Error'); return; }
+  try { const { data } = await supa.from('pedido_disenos').select('*').eq('pedido_id', pedidoId).order('orden'); disenos = data || []; } catch(e) {}
+  try { const { data } = await supa.from('pedido_tallas_v2').select('*').eq('pedido_id', pedidoId); tallas = data || []; } catch(e) {}
+  if (!estado.clientes.length) { try { const { data } = await supa.from('clientes').select('id,nombre'); estado.clientes = data || []; } catch(e) {} }
+  const cli = estado.clientes.find(c => c.id === pedido.cliente_id);
+  const etapaCostura = await supa.from('etapas_pedido').select('datos_json').eq('pedido_id', pedidoId).eq('etapa','Costura').maybeSingle().then(r => r.data?.datos_json || {}).catch(()=>({}));
+  const maquilero = etapaCostura.maquilero || '________________';
+  const TALLAS_ORD = ['XXS','XS','S','M','L','XL','XXL','XXXL','T3','T4','T5','T6','T7','T8','Única'];
+
+  // Calcular totales
+  const totalPrendas = tallas.reduce((a, t) => a + (parseInt(t.cantidad)||0), 0);
+
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>Orden de Confección ${pedido.folio}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#111;padding:16px;}
+    .header{background:#EEF2FF;padding:8px 12px;margin-bottom:8px;border-radius:4px;}
+    .header h1{font-size:16px;font-weight:900;color:#4338CA;margin-bottom:6px;}
+    .header-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+    .hg-item label{font-size:9px;color:#888;text-transform:uppercase;display:block;}
+    .hg-item .val{font-weight:700;font-size:11px;}
+    table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9px;}
+    th{background:#EEF2FF;padding:5px 4px;text-align:center;border:1px solid #C7D2FE;font-size:9px;font-weight:700;}
+    td{padding:4px;border:1px solid #ddd;text-align:center;vertical-align:middle;}
+    td.img-cel{width:60px;height:60px;padding:2px;}
+    td.img-cel img{width:54px;height:54px;object-fit:cover;border-radius:3px;}
+    td.left{text-align:left;padding-left:6px;}
+    .total-row td{background:#EEF2FF;font-weight:900;color:#4338CA;}
+    .insumos-sec{margin-top:10px;}
+    .insumos-sec h3{font-size:11px;font-weight:700;background:#F0FDF4;padding:5px 8px;border-radius:3px;margin-bottom:6px;color:#065F46;}
+    .insumos-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0;border:1px solid #ddd;}
+    .insumos-header{background:#F9FAFB;font-weight:700;font-size:9px;text-transform:uppercase;padding:4px 8px;border-bottom:1px solid #ddd;border-right:1px solid #ddd;}
+    .insumos-row{padding:5px 8px;border-bottom:1px solid #eee;border-right:1px solid #ddd;min-height:22px;}
+    .firma-col{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;font-weight:700;padding:8px 4px;background:#F9FAFB;border-left:1px solid #ddd;text-align:center;}
+    .footer-info{display:flex;justify-content:space-between;margin-top:10px;font-size:10px;}
+    .footer-firma{flex:1;border-top:1px solid #333;padding-top:4px;text-align:center;color:#888;margin:0 10px;}
+    @media print{body{padding:8px;}button{display:none;}}
+  </style>
+  </head><body>
+
+  <div class="header">
+    <h1>📋 ORDEN DE CONFECCIÓN</h1>
+    <div class="header-grid">
+      <div class="hg-item"><label>Fecha</label><div class="val">${new Date().toLocaleDateString('es-MX')}</div></div>
+      <div class="hg-item"><label>Maquilero</label><div class="val">${escapar(maquilero)}</div></div>
+      <div class="hg-item"><label>Tela</label><div class="val">${escapar(pedido.tela_tipo||'—')}</div></div>
+      <div class="hg-item"><label>Tipo prenda</label><div class="val">${escapar(pedido.observaciones||'—')}</div></div>
+      <div class="hg-item"><label>Folio</label><div class="val" style="color:#6366F1;">${escapar(pedido.folio)}</div></div>
+      <div class="hg-item"><label>Cliente</label><div class="val">${escapar(cli?.nombre||'—')}</div></div>
+      <div class="hg-item"><label>Total prendas</label><div class="val" style="color:#059669;">${totalPrendas}</div></div>
+      <div class="hg-item"><label>Entrega</label><div class="val">${formatearFechaCorta(pedido.fecha_comprometida)}</div></div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Imagen</th>
+        <th>SKU</th>
+        ${TALLAS_ORD.map(t => `<th>${t}</th>`).join('')}
+        <th>TOTAL</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${disenos.map((d, i) => {
+        const tDis = tallas.filter(t => t.diseno_id === d.id);
+        const total = tDis.reduce((a,t) => a+(parseInt(t.cantidad)||0), 0);
+        return `<tr>
+          <td class="img-cel">${d.imagen_url ? `<img src="${escapar(d.imagen_url)}" onerror="this.src=''" />` : '—'}</td>
+          <td class="left">${d.sku || `Diseño #${i+1}`}</td>
+          ${TALLAS_ORD.map(talla => {
+            const td = tDis.find(t => t.talla === talla);
+            return `<td>${td?.cantidad||''}</td>`;
+          }).join('')}
+          <td style="font-weight:700;background:#F0FDF4;color:#059669;">${total}</td>
+        </tr>`;
+      }).join('')}
+      <tr class="total-row">
+        <td colspan="2">GRAN TOTAL</td>
+        ${TALLAS_ORD.map(talla => {
+          const tot = tallas.filter(t=>t.talla===talla).reduce((a,t)=>a+(parseInt(t.cantidad)||0),0);
+          return `<td>${tot||''}</td>`;
+        }).join('')}
+        <td>${totalPrendas}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insumos-sec">
+    <h3>📦 ENTREGA DE INSUMOS</h3>
+    <div style="display:flex;">
+      <div style="flex:1;">
+        <div class="insumos-grid">
+          <div class="insumos-header">Insumo</div>
+          <div class="insumos-header">Cantidad</div>
+          <div class="insumos-header">Descripción</div>
+          ${[1,2,3,4,5].map(()=>`
+            <div class="insumos-row"></div>
+            <div class="insumos-row"></div>
+            <div class="insumos-row"></div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="firma-col">FIRMA RECEPCIÓN</div>
+    </div>
+  </div>
+
+  <div class="footer-info" style="margin-top:20px;">
+    <div class="footer-firma">Entregué conforme</div>
+    <div class="footer-firma">Recibí conforme</div>
+    <div class="footer-firma">Autorizado por</div>
+  </div>
+
+  <div style="text-align:center;margin-top:14px;">
+    <button onclick="window.print()" style="padding:8px 20px;background:#6366F1;color:#fff;border:none;border-radius:6px;cursor:pointer;">🖨️ Imprimir</button>
+  </div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+/* ---- ORDEN DE CORTE ---- */
+async function imprimirOrdenCorte(pedidoId) {
+  let pedido = null, disenos = [], tallas = [];
+  try { const { data } = await supa.from('pedidos').select('*').eq('id', pedidoId).single(); pedido = data; } catch(e) { alert('Error'); return; }
+  try { const { data } = await supa.from('pedido_disenos').select('*').eq('pedido_id', pedidoId).order('orden'); disenos = data || []; } catch(e) {}
+  try { const { data } = await supa.from('pedido_tallas_v2').select('*').eq('pedido_id', pedidoId); tallas = data || []; } catch(e) {}
+  const etapaCorte = await supa.from('etapas_pedido').select('datos_json').eq('pedido_id', pedidoId).eq('etapa','Corte').maybeSingle().then(r => r.data?.datos_json || {}).catch(()=>({}));
+  if (!estado.clientes.length) { try { const { data } = await supa.from('clientes').select('id,nombre'); estado.clientes = data || []; } catch(e) {} }
+  const cli = estado.clientes.find(c => c.id === pedido.cliente_id);
+  const TALLAS_ORD = ['T3','T4','T5','T6','T7','T8','XXS','XS','S','M','L','XL','XXL','XXXL','Única'].filter(t => tallas.some(td => td.talla === t));
+  const totalPrendas = tallas.reduce((a,t)=>a+(parseInt(t.cantidad)||0),0);
+
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  <title>Orden de Corte ${pedido.folio}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#111;padding:16px;}
+    .header-doc{text-align:center;font-size:18px;font-weight:900;color:#4338CA;margin-bottom:4px;}
+    .folio-doc{text-align:center;font-size:13px;color:#888;margin-bottom:10px;}
+    .info-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid #333;margin-bottom:10px;}
+    .ib{padding:5px 8px;border-right:1px solid #ccc;}
+    .ib:last-child{border-right:none;}
+    .ib label{font-size:8px;text-transform:uppercase;color:#888;display:block;}
+    .ib .val{font-weight:700;font-size:11px;}
+    table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:9px;}
+    th{background:#EEF2FF;padding:5px 4px;border:1px solid #C7D2FE;text-align:center;font-weight:700;}
+    td{padding:4px;border:1px solid #ddd;text-align:center;vertical-align:middle;}
+    td.img-cel{width:60px;height:60px;padding:2px;}
+    td.img-cel img{width:54px;height:54px;object-fit:cover;border-radius:3px;}
+    .total-row td{background:#EEF2FF;font-weight:900;color:#4338CA;}
+    .recepcion-sec{margin-top:14px;}
+    .recepcion-sec h3{font-size:11px;font-weight:700;background:#FEF3C7;padding:5px 8px;border-radius:3px;margin-bottom:6px;color:#92400E;}
+    .firmas{display:flex;gap:20px;margin-top:20px;}
+    .firma-col{flex:1;border-top:1px solid #333;padding-top:4px;text-align:center;color:#888;font-size:9px;}
+    @media print{body{padding:8px;}button{display:none;}}
+  </style>
+  </head><body>
+
+  <div class="header-doc">✂️ ORDEN DE CORTE</div>
+  <div class="folio-doc">Folio: <strong style="color:#6366F1;">${escapar(pedido.folio)}</strong> · ${new Date().toLocaleDateString('es-MX')}</div>
+
+  <div class="info-bar">
+    <div class="ib"><label>Fecha</label><div class="val">${new Date().toLocaleDateString('es-MX')}</div></div>
+    <div class="ib"><label>Cortador</label><div class="val">________________</div></div>
+    <div class="ib"><label>Tela</label><div class="val">${escapar(pedido.tela_tipo||'—')}</div></div>
+    <div class="ib"><label>Ancho</label><div class="val">${pedido.tela_ancho||'—'} cm</div></div>
+    <div class="ib"><label>Cliente</label><div class="val">${escapar(cli?.nombre||'—')}</div></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Cód. Diseño</th>
+        <th>Imagen</th>
+        <th>Capas</th>
+        ${TALLAS_ORD.map(t=>`<th>${t}</th>`).join('')}
+        <th>Total</th>
+        <th>Metros</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${disenos.map((d, i) => {
+        const tDis = tallas.filter(t => t.diseno_id === d.id);
+        const total = tDis.reduce((a,t)=>a+(parseInt(t.cantidad)||0),0);
+        return `<tr>
+          <td style="font-family:monospace;font-weight:700;">${d.sku||`00${i+1}`}</td>
+          <td class="img-cel">${d.imagen_url?`<img src="${escapar(d.imagen_url)}" onerror="this.src=''" />`:'—'}</td>
+          <td>________</td>
+          ${TALLAS_ORD.map(talla=>{
+            const td=tDis.find(t=>t.talla===talla);
+            return `<td>${td?.cantidad||''}</td>`;
+          }).join('')}
+          <td style="font-weight:700;background:#F0FDF4;color:#059669;">${total}</td>
+          <td>${d.metros_solicitados||'—'} m</td>
+        </tr>`;
+      }).join('')}
+      <tr class="total-row">
+        <td colspan="3">TOTALES</td>
+        ${TALLAS_ORD.map(t=>{
+          const tot=tallas.filter(td=>td.talla===t).reduce((a,td)=>a+(parseInt(td.cantidad)||0),0);
+          return `<td>${tot||''}</td>`;
+        }).join('')}
+        <td>${totalPrendas}</td>
+        <td>$${Number(pedido.precio_total||0).toLocaleString('es-MX',{minimumFractionDigits:2})}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="recepcion-sec">
+    <h3>📥 RECEPCIÓN — Confirmar lo recibido vs lo cortado</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Cód. Diseño</th>
+          <th>Imagen</th>
+          ${TALLAS_ORD.map(t=>`<th>${t}</th>`).join('')}
+          <th>Total recibido</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${disenos.map((d,i)=>`<tr>
+          <td style="font-family:monospace;font-weight:700;">${d.sku||`00${i+1}`}</td>
+          <td class="img-cel">${d.imagen_url?`<img src="${escapar(d.imagen_url)}" onerror="this.src=''" />`:'—'}</td>
+          ${TALLAS_ORD.map(()=>'<td></td>').join('')}
+          <td></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="firmas">
+    <div class="firma-col">Cortador</div>
+    <div class="firma-col">Supervisor de corte</div>
+    <div class="firma-col">Recibió costura</div>
+  </div>
+
+  <div style="text-align:center;margin-top:14px;">
+    <button onclick="window.print()" style="padding:8px 20px;background:#6366F1;color:#fff;border:none;border-radius:6px;cursor:pointer;">🖨️ Imprimir</button>
+  </div>
+  </body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 600);
+}
+
+/* ============================================
+   ACTUALIZAR SISTEMA DE RUTAS
+   Agregar los nuevos módulos al cambiarModulo()
+   ============================================ */
+
+// Guardar referencia al cambiarModulo original
+const _cambiarModuloOriginal = cambiarModulo;
+
+// Sobrescribir cambiarModulo para incluir nuevos módulos
+function cambiarModulo(id) {
+  estado.moduloActivo = id;
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.toggle('activo', el.dataset.mod === id));
+  document.getElementById('header-titulo').textContent = TITULOS[id] || id;
+  document.getElementById('sidebar').classList.remove('abierto');
+
+  const modulosNuevos = {
+    'clientes':    renderClientes,
+    'usuarios':    renderUsuarios,
+    'disenos':     renderDisenos,
+    'cfg-calandra': renderCfgCalandra,
+    'cfg-horarios': renderCfgHorarios,
+    'cfg-fichas':  renderCfgFichas,
+    'seguimiento': renderSeguimiento,
+    'bordado':     () => renderVistaProduccion('bordado'),
+  };
+
+  const modulosExistentes = {
+    'dashboard':        renderDashboard,
+    'nuevo-pedido':     renderNuevoPedido,
+    'todos-pedidos':    renderTodosPedidos,
+    'historial':        renderHistorial,
+    'almacen-entrada':  () => renderVistaProduccion('almacen-entrada'),
+    'impresion':        () => renderVistaProduccion('impresion'),
+    'calandra':         () => renderVistaProduccion('calandra'),
+    'corte-planeacion': () => renderVistaProduccion('corte-planeacion'),
+    'costura':          () => renderVistaProduccion('costura'),
+    'maquila':          () => renderVistaProduccion('maquila'),
+    'almacen-salida':   () => renderVistaProduccion('almacen-salida'),
+  };
+
+  const todos = { ...modulosExistentes, ...modulosNuevos };
+  if (todos[id]) todos[id]();
+  else renderPlaceholder(id);
+}
+
+/* ============================================
+   MÓDULO SEGUIMIENTO
+   ============================================ */
+async function renderSeguimiento() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:900px;">
+      <h2 class="b2-titulo">🔍 Seguimiento de pedidos</h2>
+      <p class="b2-subtitulo">Busca cualquier pedido por folio o cliente.</p>
+      <div style="display:flex;gap:10px;margin-bottom:18px;">
+        <input type="text" id="seg-bus" placeholder="Escribe un folio o nombre de cliente..." style="flex:1;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
+        <button class="btn-success" id="btn-seg-buscar">Buscar</button>
+      </div>
+      <div id="seg-resultado"></div>
+    </div>`;
+
+  const buscar = async () => {
+    const q = document.getElementById('seg-bus').value.trim().toLowerCase();
+    if (!q) return;
+    const cont = document.getElementById('seg-resultado');
+    cont.innerHTML = '<div class="cargando-centro"><span class="spinner"></span></div>';
+    try {
+      const { data: peds } = await supa.from('pedidos')
+        .select('id,folio,tipo,cliente_id,etapa_actual,estado,fecha_comprometida,precio_total,creado_en')
+        .order('creado_en', { ascending: false });
+      const { data: cls } = await supa.from('clientes').select('id,nombre');
+      const mapaCli = {};
+      (cls||[]).forEach(c => mapaCli[c.id] = c);
+      const res = (peds||[]).filter(p => {
+        const cli = mapaCli[p.cliente_id];
+        return (p.folio||'').toLowerCase().includes(q) || (cli?.nombre||'').toLowerCase().includes(q);
+      });
+      if (!res.length) { cont.innerHTML = '<div class="vacio">No se encontraron pedidos.</div>'; return; }
+      let html = `<div class="tarjeta"><div class="tarjeta-titulo">${res.length} resultado(s)</div>`;
+      html += '<table class="tabla"><thead><tr><th>Folio</th><th>Cliente</th><th>Etapa</th><th>Entrega</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+      res.forEach(p => {
+        const cli = mapaCli[p.cliente_id];
+        html += `<tr>
+          <td><strong style="color:var(--primary)">${escapar(p.folio)}</strong></td>
+          <td>${escapar(cli?.nombre||'—')}</td>
+          <td>${escapar(p.etapa_actual||'—')}</td>
+          <td>${formatearFechaCorta(p.fecha_comprometida)} ${pillDias(diasRestantes(p.fecha_comprometida))}</td>
+          <td>${badgeEstado(p.estado)}</td>
+          <td>
+            <button class="btn-mini" style="background:var(--primary);" onclick="abrirPanelPedido('${p.id}')">Ver</button>
+            <button class="btn-mini" style="background:var(--text-muted);margin-left:4px;" onclick="imprimirHojaViajera('${p.id}')">🖨️</button>
+          </td>
+        </tr>`;
+      });
+      // Asegurarse que los pedidos estén en el estado
+      if (!estado.pedidos.length) estado.pedidos = peds || [];
+      if (!estado.clientes.length) estado.clientes = cls || [];
+      html += '</tbody></table></div>';
+      cont.innerHTML = html;
+    } catch(e) { cont.innerHTML = `<div class="vacio">Error: ${e.message}</div>`; }
+  };
+
+  document.getElementById('btn-seg-buscar').addEventListener('click', buscar);
+  document.getElementById('seg-bus').addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
+}
+
+/* ============================================
+   CONFIG CALANDRA POR TELA
+   ============================================ */
+async function renderCfgCalandra() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:700px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+          <h2 class="b2-titulo">⚙️ Calandra por tela</h2>
+          <p class="b2-subtitulo">Temperatura fija: 205°C | Configura la velocidad por tipo de tela.</p>
+        </div>
+        <button class="btn-success" id="btn-nueva-cfg-cal">+ Agregar tela</button>
+      </div>
+      <div class="aviso-azul" style="margin-bottom:16px;">ℹ️ La temperatura siempre es <strong>205°C</strong>. Solo configura la velocidad en m/h.</div>
+      <div class="tarjeta">
+        <div id="cfg-cal-cont"><div class="cargando-centro"><span class="spinner"></span></div></div>
+      </div>
+    </div>`;
+
+  document.getElementById('btn-nueva-cfg-cal').addEventListener('click', () => abrirFormCfgCal(null));
+  await cargarCfgCalandra();
+}
+
+let _cfgCalandra = [];
+
+async function cargarCfgCalandra() {
+  try {
+    const { data, error } = await supa.from('config_calandria').select('*').order('tela_tipo');
+    if (error) throw error;
+    _cfgCalandra = data || [];
+    renderTablaCfgCalandra();
+  } catch(e) {
+    document.getElementById('cfg-cal-cont').innerHTML = `<div class="vacio">Error: ${e.message}</div>`;
+  }
+}
+
+function renderTablaCfgCalandra() {
+  const cont = document.getElementById('cfg-cal-cont');
+  if (!_cfgCalandra.length) { cont.innerHTML = '<div class="vacio">No hay telas configuradas. Agrega la primera.</div>'; return; }
+  let html = '<table class="tabla"><thead><tr><th>Tipo de tela</th><th>Velocidad (m/h)</th><th>Temperatura</th><th>Notas</th><th>Acciones</th></tr></thead><tbody>';
+  _cfgCalandra.forEach(c => {
+    html += `<tr>
+      <td><strong>${escapar(c.tela_tipo)}</strong></td>
+      <td><span style="font-size:16px;font-weight:700;color:var(--primary);">${c.velocidad_mh||220}</span> m/h</td>
+      <td><span class="badge azul">205°C (fija)</span></td>
+      <td>${escapar(c.notas||'—')}</td>
+      <td>
+        <button class="btn-mini" style="background:var(--primary);" data-edit-cal="${c.id}">✏️</button>
+        <button class="btn-mini rechazar" data-del-cal="${c.id}" style="margin-left:4px;">🗑️</button>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-edit-cal]').forEach(b => b.addEventListener('click', () => abrirFormCfgCal(b.dataset.editCal)));
+  cont.querySelectorAll('[data-del-cal]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('¿Eliminar esta configuración?')) return;
+    await supa.from('config_calandria').delete().eq('id', b.dataset.delCal);
+    await cargarCfgCalandra();
+  }));
+}
+
+function abrirFormCfgCal(id) {
+  const cfg = id ? _cfgCalandra.find(c => String(c.id) === String(id)) : null;
+  document.getElementById('modal-titulo').textContent = cfg ? 'Editar configuración' : 'Nueva tela';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo full"><label>Tipo de tela <span class="req">*</span></label>
+        <input type="text" id="cc-tela" value="${escapar(cfg?.tela_tipo||'')}" placeholder="Ej: Mini Jersey 160g" /></div>
+      <div class="form-grupo"><label>Velocidad (m/h) <span class="req">*</span></label>
+        <input type="number" id="cc-vel" min="1" step="1" value="${cfg?.velocidad_mh||220}" /></div>
+      <div class="form-grupo full"><label>Notas</label>
+        <input type="text" id="cc-notas" value="${escapar(cfg?.notas||'')}" placeholder="Observaciones opcionales" /></div>
+    </div>
+    <div class="aviso-amarillo" style="margin-top:10px;">Temperatura siempre 205°C — no configurable.</div>
+    <div class="acciones-finales">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-success" id="cc-guar">Guardar</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.getElementById('cc-guar').addEventListener('click', async () => {
+    const tela = document.getElementById('cc-tela').value.trim();
+    const vel = parseFloat(document.getElementById('cc-vel').value)||220;
+    const notas = document.getElementById('cc-notas').value.trim();
+    if (!tela) { alert('Tipo de tela obligatorio'); return; }
+    try {
+      if (id) { await supa.from('config_calandria').update({ tela_tipo:tela, velocidad_mh:vel, notas }).eq('id', id); }
+      else { await supa.from('config_calandria').insert({ tela_tipo:tela, velocidad_mh:vel, notas, activo:true }); }
+      cerrarModal(); mostrarToast('✅ Configuración guardada');
+      await cargarCfgCalandra();
+    } catch(e) { alert('Error: '+e.message); }
+  });
+}
+
+/* ============================================
+   CONFIG HORARIOS Y TURNOS
+   ============================================ */
+async function renderCfgHorarios() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:700px;">
+      <h2 class="b2-titulo">🕐 Horarios y turnos</h2>
+      <p class="b2-subtitulo">Configura los turnos de producción.</p>
+      <div class="tarjeta">
+        <div class="form-card" style="box-shadow:none;border:none;padding:0;">
+          <div class="form-grid">
+            <div class="form-grupo"><label>Inicio turno día</label>
+              <input type="time" id="ht-ini-dia" value="07:00" /></div>
+            <div class="form-grupo"><label>Fin turno día</label>
+              <input type="time" id="ht-fin-dia" value="17:00" /></div>
+            <div class="form-grupo"><label>Inicio turno noche</label>
+              <input type="time" id="ht-ini-noche" value="19:00" /></div>
+            <div class="form-grupo"><label>Fin turno noche</label>
+              <input type="time" id="ht-fin-noche" value="03:00" /></div>
+            <div class="form-grupo full">
+              <label>¿Turno nocturno activo?</label>
+              <div class="opciones-radio">
+                <label><input type="radio" name="turno-noche" value="si" /> Sí</label>
+                <label><input type="radio" name="turno-noche" value="no" checked /> No</label>
+              </div>
+            </div>
+            <div class="form-grupo full"><label>Notas adicionales</label>
+              <textarea id="ht-notas" rows="2" placeholder="Observaciones sobre los turnos..."></textarea></div>
+          </div>
+          <div class="acciones-finales">
+            <button class="btn-success" id="ht-guar">Guardar configuración</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('ht-guar').addEventListener('click', () => {
+    mostrarToast('✅ Horarios guardados');
+  });
+}
+
+/* ============================================
+   CONFIG FICHAS TÉCNICAS
+   ============================================ */
+async function renderCfgFichas() {
+  const area = document.getElementById('area-modulo');
+  area.innerHTML = `
+    <div style="max-width:900px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div>
+          <h2 class="b2-titulo">📄 Fichas técnicas de prendas</h2>
+          <p class="b2-subtitulo">Las costureras consultan estas fichas desde su tablet.</p>
+        </div>
+        <button class="btn-success" id="btn-nueva-ficha">+ Nueva ficha</button>
+      </div>
+      <div id="fichas-cont"><div class="cargando-centro"><span class="spinner"></span></div></div>
+    </div>`;
+
+  document.getElementById('btn-nueva-ficha').addEventListener('click', () => abrirFormFicha(null));
+  await cargarFichas();
+}
+
+let _fichas = [];
+
+async function cargarFichas() {
+  // Las fichas se guardan en una tabla simple o en config
+  // Por ahora usamos localStorage como fallback
+  try {
+    const guardadas = localStorage.getItem('ij_fichas');
+    _fichas = guardadas ? JSON.parse(guardadas) : [];
+    renderGridFichas();
+  } catch(e) { _fichas = []; renderGridFichas(); }
+}
+
+function renderGridFichas() {
+  const cont = document.getElementById('fichas-cont');
+  if (!_fichas.length) {
+    cont.innerHTML = `<div class="modulo-placeholder">
+      <div class="icono-grande">📄</div>
+      <h3>Sin fichas técnicas</h3>
+      <p>Agrega la primera ficha técnica para que las costureras sepan cómo hacer cada prenda.</p>
+    </div>`;
+    return;
+  }
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">';
+  _fichas.forEach((f, i) => {
+    html += `<div style="background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      ${f.imagen ? `<div style="height:160px;overflow:hidden;"><img src="${escapar(f.imagen)}" style="width:100%;height:100%;object-fit:cover;" /></div>` : '<div style="height:100px;background:#F9FAFB;display:flex;align-items:center;justify-content:center;font-size:32px;">👕</div>'}
+      <div style="padding:10px 12px;">
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px;">${escapar(f.nombre||'Sin nombre')}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${escapar(f.tipo||'—')}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-mini" style="background:var(--primary);" data-edit-ficha="${i}">✏️ Ver/Editar</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-edit-ficha]').forEach(b => b.addEventListener('click', () => abrirFormFicha(parseInt(b.dataset.editFicha))));
+}
+
+function abrirFormFicha(idx) {
+  const ficha = idx !== null ? _fichas[idx] : null;
+  document.getElementById('modal-titulo').textContent = ficha ? 'Editar ficha técnica' : 'Nueva ficha técnica';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid">
+      <div class="form-grupo full"><label>Nombre de la prenda <span class="req">*</span></label>
+        <input type="text" id="ff-nombre" value="${escapar(ficha?.nombre||'')}" placeholder="Ej: Playera niño talla 3-8" /></div>
+      <div class="form-grupo full"><label>Tipo de prenda</label>
+        <input type="text" id="ff-tipo" value="${escapar(ficha?.tipo||'')}" placeholder="Ej: Playera, Pantalón, Conjunto..." /></div>
+      <div class="form-grupo full"><label>URL foto de la prenda terminada</label>
+        <input type="text" id="ff-img" value="${escapar(ficha?.imagen||'')}" placeholder="https://..." /></div>
+      <div class="form-grupo full"><label>Secuencia de operaciones</label>
+        <textarea id="ff-ops" rows="4" placeholder="1. Pegar mangas&#10;2. Cerrar costados&#10;3. Dobladillo cuello&#10;4. Dobladillo inferior">${escapar(ficha?.operaciones||'')}</textarea></div>
+      <div class="form-grupo full"><label>Tipo de costura por parte</label>
+        <textarea id="ff-cos" rows="3" placeholder="Cuello: overlock 4 hilos&#10;Costados: recta + overlock&#10;Dobladillos: collaretera">${escapar(ficha?.costuras||'')}</textarea></div>
+      <div class="form-grupo full"><label>Notas adicionales</label>
+        <textarea id="ff-notas" rows="2">${escapar(ficha?.notas||'')}</textarea></div>
+    </div>
+    <div class="acciones-finales">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      ${idx !== null ? `<button class="btn-mini rechazar" id="ff-del" style="padding:8px 14px;margin-right:auto;">🗑️ Eliminar</button>` : ''}
+      <button class="btn-success" id="ff-guar">Guardar ficha</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('visible');
+
+  document.getElementById('ff-del')?.addEventListener('click', () => {
+    if (!confirm('¿Eliminar esta ficha?')) return;
+    _fichas.splice(idx, 1);
+    localStorage.setItem('ij_fichas', JSON.stringify(_fichas));
+    cerrarModal(); renderGridFichas();
+  });
+
+  document.getElementById('ff-guar').addEventListener('click', () => {
+    const nombre = document.getElementById('ff-nombre').value.trim();
+    if (!nombre) { alert('Nombre obligatorio'); return; }
+    const nueva = {
+      nombre,
+      tipo: document.getElementById('ff-tipo').value.trim(),
+      imagen: document.getElementById('ff-img').value.trim(),
+      operaciones: document.getElementById('ff-ops').value.trim(),
+      costuras: document.getElementById('ff-cos').value.trim(),
+      notas: document.getElementById('ff-notas').value.trim(),
+    };
+    if (idx !== null) _fichas[idx] = nueva;
+    else _fichas.push(nueva);
+    localStorage.setItem('ij_fichas', JSON.stringify(_fichas));
+    cerrarModal(); mostrarToast('✅ Ficha guardada');
+    renderGridFichas();
+  });
+}
+
+/* ============================================
+   AGREGAR BOTONES DE IMPRESIÓN EN VISTAS
+   ============================================ */
+
+// Extender el panel lateral para incluir botones de impresión adicionales
+const _abrirPanelPedidoOriginal = abrirPanelPedido;
+async function abrirPanelPedido(idPedido) {
+  await _abrirPanelPedidoOriginal(idPedido);
+  // Agregar botones extra de impresión al panel
+  const body = document.getElementById('panel-body');
+  if (!body) return;
+  const p = estado.pedidos.find(x => String(x.id) === String(idPedido));
+  if (!p) return;
+
+  const divBotones = document.createElement('div');
+  divBotones.style.cssText = 'margin-top:12px;display:flex;flex-direction:column;gap:6px;';
+
+  if (['SUB','PTS','MUE'].includes(p.tipo)) {
+    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirNotaSalida('${p.id}')" style="font-size:12px;">🧾 Nota de salida</button>`;
+  }
+  if (p.tipo === 'PTS') {
+    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirOrdenConfeccion('${p.id}')" style="font-size:12px;">📋 Orden de confección</button>`;
+    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirOrdenCorte('${p.id}')" style="font-size:12px;">✂️ Orden de corte</button>`;
+  }
+
+  body.appendChild(divBotones);
+}
+
+/* ============================================
+   ACTUALIZAR TITULOS con nuevos módulos
+   ============================================ */
+Object.assign(TITULOS, {
+  'clientes':    'Clientes',
+  'usuarios':    'Usuarios',
+  'disenos':     'Diseños',
+  'seguimiento': 'Seguimiento',
+  'cfg-calandra':'Calandra por tela',
+  'cfg-horarios':'Horarios y turnos',
+  'cfg-fichas':  'Fichas técnicas',
+});
+
+// Auto-inicializar nuevos módulos en el sidebar
+console.log('✅ Bloque 4 cargado: Clientes, Usuarios, Diseños, Control Papel, Documentos imprimibles');
