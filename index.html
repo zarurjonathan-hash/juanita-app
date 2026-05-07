@@ -739,22 +739,24 @@ async function manejarLogin(e) {
   try {
     const { data, error } = await supa.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    if (!data || !data.user) throw new Error('No se recibió respuesta del servidor');
     let perfil = null;
     try {
       const { data: u } = await supa.from('usuarios').select('id,email,nombre,rol').eq('email', email).maybeSingle();
       perfil = u;
-    } catch(ex) {}
+    } catch(ex) { console.warn('No se pudo cargar perfil:', ex); }
     const sesion = {
       usuario_id: data.user.id,
       email: data.user.email,
       nombre: perfil?.nombre || email.split('@')[0],
-      rol: perfil?.rol || 'usuario',
+      rol: perfil?.rol || 'director',
     };
     localStorage.setItem('ij_sesion', JSON.stringify(sesion));
     estado.usuario = sesion;
     iniciarApp();
   } catch(err) {
-    errorEl.textContent = err.message || 'No se pudo iniciar sesión';
+    console.error('Login error:', err);
+    errorEl.textContent = err.message || 'No se pudo iniciar sesión. Verifica tu correo y contraseña.';
     errorEl.classList.add('visible');
   } finally {
     btn.disabled = false;
@@ -2609,8 +2611,17 @@ function init() {
   });
   const guardada = localStorage.getItem('ij_sesion');
   if (guardada) {
-    try { estado.usuario = JSON.parse(guardada); iniciarApp(); }
-    catch(e) { localStorage.removeItem('ij_sesion'); }
+    try {
+      const parsed = JSON.parse(guardada);
+      if (parsed && parsed.email && parsed.usuario_id) {
+        estado.usuario = parsed;
+        iniciarApp();
+      } else {
+        localStorage.removeItem('ij_sesion');
+      }
+    } catch(e) {
+      localStorage.removeItem('ij_sesion');
+    }
   }
 }
 
@@ -4056,24 +4067,6 @@ async function abrirPanelPedido(idPedido) {
     divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirOrdenCorte('${p_ref.id}')" style="font-size:12px;">✂️ Orden de corte</button>`;
   }
   body_ref.appendChild(divBotones);
-  // Agregar botones extra de impresión al panel
-  const body = document.getElementById('panel-body');
-  if (!body) return;
-  const p = estado.pedidos.find(x => String(x.id) === String(idPedido));
-  if (!p) return;
-
-  const divBotones = document.createElement('div');
-  divBotones.style.cssText = 'margin-top:12px;display:flex;flex-direction:column;gap:6px;';
-
-  if (['SUB','PTS','MUE'].includes(p.tipo)) {
-    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirNotaSalida('${p.id}')" style="font-size:12px;">🧾 Nota de salida</button>`;
-  }
-  if (p.tipo === 'PTS') {
-    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirOrdenConfeccion('${p.id}')" style="font-size:12px;">📋 Orden de confección</button>`;
-    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirOrdenCorte('${p.id}')" style="font-size:12px;">✂️ Orden de corte</button>`;
-  }
-
-  body.appendChild(divBotones);
 }
 
 /* ============================================
