@@ -476,6 +476,36 @@ a { color: inherit; text-decoration: none; }
 .metros-bar { height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden; margin: 6px 0; }
 .metros-bar-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width .3s; }
 
+
+
+/* ===== MÓDULOS CRUD / DOCUMENTOS AGREGADOS ===== */
+.toolbar-modulo{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.toolbar-modulo h2{margin:0;font-size:18px;font-weight:700;}
+.toolbar-modulo p{margin:3px 0 0;color:var(--text-muted);font-size:13px;}
+.form-inline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px;}
+.form-inline-grid .full{grid-column:1/-1;}
+.acciones-tabla{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-danger-sm{background:var(--danger);color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;}
+.btn-danger-sm:hover{background:#DC2626;}
+.btn-warning-sm{background:var(--warning);color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;}
+.btn-warning-sm:hover{background:#D97706;}
+.btn-verde-sm{background:var(--success);color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;}
+.btn-verde-sm:hover{background:#059669;}
+.img-thumb{width:54px;height:54px;object-fit:cover;border:1px solid var(--border);border-radius:8px;background:#fff;}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;}
+.doc-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow);}
+.doc-card .ico{font-size:30px;margin-bottom:10px;}
+.doc-card h3{margin:0 0 6px;font-size:15px;}
+.doc-card p{margin:0 0 14px;color:var(--text-muted);font-size:13px;}
+.selector-doc{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px;}
+.selector-doc select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;min-width:0;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px;}
+.kpi-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);}
+.kpi-card .lbl{font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+.kpi-card .num{font-size:26px;font-weight:800;color:var(--primary);margin-top:6px;}
+.barra-uso{height:8px;background:#E5E7EB;border-radius:99px;overflow:hidden;min-width:120px;}
+.barra-uso span{display:block;height:100%;background:var(--primary);border-radius:99px;}
+
 /* Placeholder modulos */
 .modulo-placeholder { background: #fff; border: 1px dashed var(--border); border-radius: 12px; padding: 60px 24px; text-align: center; color: var(--text-muted); }
 .modulo-placeholder .icono-grande { font-size: 48px; margin-bottom: 12px; }
@@ -639,6 +669,10 @@ const NAVEGACION = [
   { grupo: 'CATÁLOGOS', items: [
     { id: 'disenos', icono: '🎨', texto: 'Diseños' },
   ]},
+  { grupo: 'DOCUMENTOS', items: [
+    { id: 'documentos', icono: '🧾', texto: 'Imprimibles' },
+    { id: 'control-papel', icono: '📄', texto: 'Control de papel' },
+  ]},
   { grupo: 'CONFIG', items: [
     { id: 'cfg-calandra', icono: '⚙️',  texto: 'Calandra por tela' },
     { id: 'cfg-horarios', icono: '🕐', texto: 'Horarios y turnos' },
@@ -654,7 +688,7 @@ const TITULOS = {
   'impresion': 'Impresión', 'calandra': 'Calandra', 'costura': 'Costura',
   'maquila': 'Maquila', 'almacen-salida': 'Almacén Salida', 'bordado': 'Bordado',
   'inv-liso': 'Inventario en liso', 'picking-list': 'Picking list', 'skus': 'SKUs',
-  'disenos': 'Diseños', 'cfg-calandra': 'Calandra por tela',
+  'disenos': 'Diseños', 'documentos': 'Imprimibles', 'control-papel': 'Control de papel', 'cfg-calandra': 'Calandra por tela',
   'cfg-horarios': 'Horarios y turnos', 'cfg-fichas': 'Fichas técnicas',
 };
 
@@ -828,6 +862,14 @@ function cambiarModulo(id) {
   const area = document.getElementById('area-modulo');
   const modulos = {
     'dashboard':       renderDashboard,
+    'clientes':        renderClientes,
+    'usuarios':        renderUsuarios,
+    'disenos':         renderDisenosCatalogo,
+    'seguimiento':     renderSeguimiento,
+    'reportes':        renderReportes,
+    'documentos':      renderDocumentosImprimibles,
+    'control-papel':   renderControlPapel,
+    'cfg-calandra':    renderConfigCalandra,
     'nuevo-pedido':    renderNuevoPedido,
     'todos-pedidos':   renderTodosPedidos,
     'historial':       renderHistorial,
@@ -2689,6 +2731,372 @@ async function imprimirHojaViajera(pedidoId) {
   w.document.close();
   setTimeout(() => w.print(), 500);
 }
+
+
+
+/* ============================================
+   MÓDULOS AGREGADOS: CLIENTES, USUARIOS, DISEÑOS, DOCUMENTOS, PAPEL
+   ============================================ */
+const ROLES_SISTEMA = ['director','vendedor','impresor','calandra','corte','costura','almacen','chofer'];
+const TALLAS_SISTEMA = ['XXS','XS','S','M','L','XL','XXL','XXXL','T3','T4','T5','T6','T7','T8','Única'];
+
+function valor(id){ return (document.getElementById(id)?.value || '').trim(); }
+function numero(id){ return parseFloat(valor(id)) || 0; }
+function hoyISO(){ return new Date().toISOString().slice(0,10); }
+function fechaHoraMX(f){ if(!f) return '—'; try{return new Date(f).toLocaleString('es-MX');}catch(e){return f;} }
+function fmtMon(n){ return '$' + (parseFloat(n)||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+async function asegurarClientesCargados(){
+  if(estado.clientes && estado.clientes.length) return estado.clientes;
+  try{ const {data}=await supa.from('clientes').select('*').order('nombre'); estado.clientes=data||[]; }catch(e){ estado.clientes=[]; }
+  return estado.clientes;
+}
+
+async function cargarPedidosBasicos(){
+  let pedidos=[];
+  try{
+    const {data,error}=await supa.from('pedidos').select('*').order('creado_en',{ascending:false});
+    if(error) throw error;
+    pedidos=data||[];
+  }catch(e){ mostrarToast('❌ No pude cargar pedidos: '+e.message,'error'); }
+  return pedidos;
+}
+
+async function cargarPedidoCompleto(pedidoId){
+  const pack={pedido:null,cliente:null,disenos:[],tallas:[],rollos:[],etapas:[]};
+  try{ const {data,error}=await supa.from('pedidos').select('*').eq('id',pedidoId).single(); if(error) throw error; pack.pedido=data; }catch(e){ throw e; }
+  await asegurarClientesCargados();
+  pack.cliente=estado.clientes.find(c=>String(c.id)===String(pack.pedido.cliente_id));
+  try{ const {data}=await supa.from('pedido_disenos').select('*').eq('pedido_id',pedidoId).order('orden'); pack.disenos=data||[]; }catch(e){}
+  try{ const {data}=await supa.from('pedido_tallas_v2').select('*').eq('pedido_id',pedidoId); pack.tallas=data||[]; }catch(e){}
+  try{ const {data}=await supa.from('packing_list_rollos').select('*').eq('pedido_id',pedidoId).order('numero_rollo'); pack.rollos=data||[]; }catch(e){}
+  try{ const {data}=await supa.from('etapas_pedido').select('*').eq('pedido_id',pedidoId).order('completado_en'); pack.etapas=data||[]; }catch(e){}
+  return pack;
+}
+
+/* ===== CLIENTES ===== */
+async function renderClientes(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1100px;">
+    <div class="toolbar-modulo"><div><h2>👥 Clientes</h2><p>Alta, edición, desactivación y búsqueda de clientes.</p></div><button class="btn-primario-sm" id="btn-nuevo-cliente">+ Nuevo cliente</button></div>
+    <div class="filtros-fila"><input type="text" id="buscar-cliente" placeholder="Buscar por nombre, teléfono o correo"></div>
+    <div class="tarjeta"><div id="clientes-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando clientes...</div></div></div>
+  </div>`;
+  document.getElementById('btn-nuevo-cliente').addEventListener('click',()=>abrirFormularioCliente());
+  document.getElementById('buscar-cliente').addEventListener('input',renderTablaClientes);
+  await cargarClientesModulo();
+}
+
+async function cargarClientesModulo(){
+  try{ const {data,error}=await supa.from('clientes').select('*').order('nombre'); if(error) throw error; estado.clientes=data||[]; }
+  catch(e){ mostrarToast('❌ Error cargando clientes: '+e.message,'error'); }
+  renderTablaClientes();
+}
+
+function renderTablaClientes(){
+  const cont=document.getElementById('clientes-cont'); if(!cont) return;
+  const q=(document.getElementById('buscar-cliente')?.value||'').toLowerCase();
+  const lista=(estado.clientes||[]).filter(c=>[c.nombre,c.telefono,c.email,c.direccion].join(' ').toLowerCase().includes(q));
+  if(!lista.length){ cont.innerHTML='<div class="vacio">No hay clientes que coincidan.</div>'; return; }
+  cont.innerHTML=`<div class="scroll-x"><table class="tabla"><thead><tr><th>Cliente</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+    ${lista.map(c=>`<tr><td><strong>${escapar(c.nombre)}</strong></td><td>${escapar(c.telefono||'—')}</td><td>${escapar(c.email||'—')}</td><td>${escapar(c.direccion||'—')}</td><td>${c.activo===false?'<span class="badge rojo">Inactivo</span>':'<span class="badge verde">Activo</span>'}</td><td><div class="acciones-tabla"><button class="btn-secundario" onclick="abrirFormularioCliente('${c.id}')">Editar</button><button class="btn-danger-sm" onclick="cambiarActivoCliente('${c.id}',${c.activo===false?'true':'false'})">${c.activo===false?'Activar':'Desactivar'}</button></div></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+function abrirFormularioCliente(id){
+  const c=(estado.clientes||[]).find(x=>String(x.id)===String(id))||{};
+  document.getElementById('modal-titulo').textContent=id?'Editar cliente':'Nuevo cliente';
+  document.getElementById('modal-body').innerHTML=`<form id="form-cliente">
+    <div class="form-inline-grid">
+      <div class="form-grupo"><label>Nombre <span class="req">*</span></label><input type="text" id="cl-nombre" value="${escapar(c.nombre||'')}" required></div>
+      <div class="form-grupo"><label>Teléfono</label><input type="text" id="cl-telefono" value="${escapar(c.telefono||'')}"></div>
+      <div class="form-grupo"><label>Email</label><input type="email" id="cl-email" value="${escapar(c.email||'')}"></div>
+      <div class="form-grupo full"><label>Dirección</label><textarea id="cl-direccion">${escapar(c.direccion||'')}</textarea></div>
+    </div><div class="acciones-finales"><button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button><button class="btn-success" type="submit">Guardar cliente</button></div>
+  </form>`;
+  document.getElementById('form-cliente').addEventListener('submit',e=>guardarCliente(e,id));
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+async function guardarCliente(e,id){
+  e.preventDefault();
+  const payload={nombre:valor('cl-nombre'),telefono:valor('cl-telefono')||null,email:valor('cl-email')||null,direccion:valor('cl-direccion')||null,activo:true};
+  if(!payload.nombre){ alert('El nombre es obligatorio'); return; }
+  try{
+    const r=id?await supa.from('clientes').update(payload).eq('id',id):await supa.from('clientes').insert(payload);
+    if(r.error) throw r.error;
+    cerrarModal(); mostrarToast('✅ Cliente guardado'); await cargarClientesModulo();
+  }catch(e){ mostrarToast('❌ Error guardando cliente: '+e.message,'error'); }
+}
+
+async function cambiarActivoCliente(id,activo){
+  if(!confirm(activo?'¿Activar cliente?':'¿Desactivar cliente?')) return;
+  try{ const {error}=await supa.from('clientes').update({activo}).eq('id',id); if(error) throw error; mostrarToast('✅ Cliente actualizado'); await cargarClientesModulo(); }
+  catch(e){ mostrarToast('❌ Error: '+e.message,'error'); }
+}
+
+/* ===== USUARIOS ===== */
+async function renderUsuarios(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1100px;"><div class="toolbar-modulo"><div><h2>👤 Usuarios</h2><p>Administra usuarios internos y roles. Esto edita la tabla usuarios; el acceso real depende de Supabase Auth.</p></div><button class="btn-primario-sm" id="btn-nuevo-usuario">+ Nuevo usuario</button></div><div class="tarjeta"><div id="usuarios-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando usuarios...</div></div></div></div>`;
+  document.getElementById('btn-nuevo-usuario').addEventListener('click',()=>abrirFormularioUsuario());
+  await cargarUsuariosModulo();
+}
+
+async function cargarUsuariosModulo(){
+  try{ const {data,error}=await supa.from('usuarios').select('*').order('nombre'); if(error) throw error; estado.usuarios=data||[]; }
+  catch(e){ mostrarToast('❌ Error cargando usuarios: '+e.message,'error'); estado.usuarios=[]; }
+  renderTablaUsuarios();
+}
+
+function renderTablaUsuarios(){
+  const cont=document.getElementById('usuarios-cont'); if(!cont) return;
+  const lista=estado.usuarios||[];
+  if(!lista.length){ cont.innerHTML='<div class="vacio">No hay usuarios registrados.</div>'; return; }
+  cont.innerHTML=`<div class="scroll-x"><table class="tabla"><thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${lista.map(u=>`<tr><td><strong>${escapar(u.nombre||'—')}</strong></td><td>${escapar(u.email||'—')}</td><td><span class="badge azul">${escapar(u.rol||'—')}</span></td><td>${u.activo===false?'<span class="badge rojo">Inactivo</span>':'<span class="badge verde">Activo</span>'}</td><td><div class="acciones-tabla"><button class="btn-secundario" onclick="abrirFormularioUsuario('${u.id}')">Editar</button><button class="btn-danger-sm" onclick="cambiarActivoUsuario('${u.id}',${u.activo===false?'true':'false'})">${u.activo===false?'Activar':'Desactivar'}</button></div></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function abrirFormularioUsuario(id){
+  const u=(estado.usuarios||[]).find(x=>String(x.id)===String(id))||{};
+  document.getElementById('modal-titulo').textContent=id?'Editar usuario':'Nuevo usuario';
+  document.getElementById('modal-body').innerHTML=`<form id="form-usuario"><div class="form-inline-grid">
+    <div class="form-grupo"><label>Nombre <span class="req">*</span></label><input type="text" id="us-nombre" value="${escapar(u.nombre||'')}" required></div>
+    <div class="form-grupo"><label>Email <span class="req">*</span></label><input type="email" id="us-email" value="${escapar(u.email||'')}" required></div>
+    <div class="form-grupo"><label>Rol</label><select id="us-rol">${ROLES_SISTEMA.map(r=>`<option value="${r}" ${u.rol===r?'selected':''}>${r}</option>`).join('')}</select></div>
+  </div><div class="aviso-azul">Para que un usuario pueda iniciar sesión, también debe existir en Supabase Auth. Este módulo mantiene su perfil, rol y permisos internos.</div><div class="acciones-finales"><button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button><button class="btn-success" type="submit">Guardar usuario</button></div></form>`;
+  document.getElementById('form-usuario').addEventListener('submit',e=>guardarUsuario(e,id));
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+async function guardarUsuario(e,id){
+  e.preventDefault();
+  const payload={nombre:valor('us-nombre'),email:valor('us-email'),rol:valor('us-rol'),activo:true};
+  if(!payload.nombre||!payload.email){ alert('Nombre y email son obligatorios'); return; }
+  try{ const r=id?await supa.from('usuarios').update(payload).eq('id',id):await supa.from('usuarios').insert(payload); if(r.error) throw r.error; cerrarModal(); mostrarToast('✅ Usuario guardado'); await cargarUsuariosModulo(); }
+  catch(e){ mostrarToast('❌ Error guardando usuario: '+e.message,'error'); }
+}
+
+async function cambiarActivoUsuario(id,activo){
+  if(!confirm(activo?'¿Activar usuario?':'¿Desactivar usuario?')) return;
+  try{ const {error}=await supa.from('usuarios').update({activo}).eq('id',id); if(error) throw error; mostrarToast('✅ Usuario actualizado'); await cargarUsuariosModulo(); }
+  catch(e){ mostrarToast('❌ Error: '+e.message,'error'); }
+}
+
+/* ===== CATÁLOGO DE DISEÑOS ===== */
+async function renderDisenosCatalogo(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1200px;"><div class="toolbar-modulo"><div><h2>🎨 Catálogo de diseños</h2><p>Diseños organizados por cliente, con SKU e imagen.</p></div><button class="btn-primario-sm" id="btn-nuevo-diseno">+ Nuevo diseño</button></div><div class="filtros-fila"><input type="text" id="buscar-diseno" placeholder="Buscar por SKU, nombre o cliente"><select id="filtrar-diseno-cliente"><option value="todos">Todos los clientes</option></select></div><div class="tarjeta"><div id="disenos-cont-mod"><div class="cargando-centro"><span class="spinner"></span> Cargando diseños...</div></div></div></div>`;
+  document.getElementById('btn-nuevo-diseno').addEventListener('click',()=>abrirFormularioDiseno());
+  document.getElementById('buscar-diseno').addEventListener('input',renderTablaDisenosCatalogo);
+  document.getElementById('filtrar-diseno-cliente').addEventListener('change',renderTablaDisenosCatalogo);
+  await cargarDisenosCatalogo();
+}
+
+async function cargarDisenosCatalogo(){
+  await asegurarClientesCargados();
+  try{ const {data,error}=await supa.from('disenos').select('*').order('creado_en',{ascending:false}); if(error) throw error; estado.disenos=data||[]; }
+  catch(e){ mostrarToast('❌ Error cargando diseños: '+e.message,'error'); estado.disenos=[]; }
+  const sel=document.getElementById('filtrar-diseno-cliente');
+  if(sel){ sel.innerHTML='<option value="todos">Todos los clientes</option>'+estado.clientes.map(c=>`<option value="${c.id}">${escapar(c.nombre)}</option>`).join(''); }
+  renderTablaDisenosCatalogo();
+}
+
+function nombreClientePorId(id){ return (estado.clientes||[]).find(c=>String(c.id)===String(id))?.nombre || '—'; }
+function renderTablaDisenosCatalogo(){
+  const cont=document.getElementById('disenos-cont-mod'); if(!cont) return;
+  const q=(document.getElementById('buscar-diseno')?.value||'').toLowerCase();
+  const fc=document.getElementById('filtrar-diseno-cliente')?.value||'todos';
+  const lista=(estado.disenos||[]).filter(d=>{
+    const cli=nombreClientePorId(d.cliente_id);
+    const txt=[d.sku,d.nombre,cli].join(' ').toLowerCase();
+    return txt.includes(q)&&(fc==='todos'||String(d.cliente_id)===String(fc));
+  });
+  if(!lista.length){ cont.innerHTML='<div class="vacio">No hay diseños registrados.</div>'; return; }
+  cont.innerHTML=`<div class="scroll-x"><table class="tabla"><thead><tr><th>Imagen</th><th>SKU</th><th>Nombre</th><th>Cliente</th><th>Creado</th><th>Acciones</th></tr></thead><tbody>${lista.map(d=>`<tr><td>${d.imagen_url?`<img class="img-thumb" src="${escapar(d.imagen_url)}" onerror="this.style.display='none'">`:'—'}</td><td><strong style="color:var(--primary)">${escapar(d.sku||'—')}</strong></td><td>${escapar(d.nombre||'—')}</td><td>${escapar(nombreClientePorId(d.cliente_id))}</td><td>${fechaHoraMX(d.creado_en)}</td><td><div class="acciones-tabla"><button class="btn-secundario" onclick="abrirFormularioDiseno('${d.id}')">Editar</button><button class="btn-danger-sm" onclick="eliminarDiseno('${d.id}')">Eliminar</button></div></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function inicialesCliente(nombre){ return (nombre||'CL').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'CL'; }
+async function sugerirSkuDiseno(clienteId){
+  const nom=nombreClientePorId(clienteId);
+  const pref=inicialesCliente(nom);
+  const count=(estado.disenos||[]).length+1;
+  return `${pref}-${String(count).padStart(4,'0')}`;
+}
+
+async function abrirFormularioDiseno(id){
+  await asegurarClientesCargados();
+  const d=(estado.disenos||[]).find(x=>String(x.id)===String(id))||{};
+  document.getElementById('modal-titulo').textContent=id?'Editar diseño':'Nuevo diseño';
+  document.getElementById('modal-body').innerHTML=`<form id="form-diseno"><div class="form-inline-grid">
+    <div class="form-grupo"><label>Cliente <span class="req">*</span></label><select id="di-cliente" required><option value="">Seleccionar...</option>${estado.clientes.map(c=>`<option value="${c.id}" ${String(d.cliente_id)===String(c.id)?'selected':''}>${escapar(c.nombre)}</option>`).join('')}</select></div>
+    <div class="form-grupo"><label>SKU <span class="req">*</span></label><input type="text" id="di-sku" value="${escapar(d.sku||'')}" required></div>
+    <div class="form-grupo"><label>Nombre <span class="req">*</span></label><input type="text" id="di-nombre" value="${escapar(d.nombre||'')}" required></div>
+    <div class="form-grupo full"><label>URL de imagen</label><input type="text" id="di-imagen" value="${escapar(d.imagen_url||'')}" placeholder="https://..."></div>
+  </div><div class="acciones-finales"><button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button><button class="btn-success" type="submit">Guardar diseño</button></div></form>`;
+  document.getElementById('di-cliente').addEventListener('change',async e=>{ if(!id&&!valor('di-sku')) document.getElementById('di-sku').value=await sugerirSkuDiseno(e.target.value); });
+  document.getElementById('form-diseno').addEventListener('submit',e=>guardarDiseno(e,id));
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+async function guardarDiseno(e,id){
+  e.preventDefault();
+  const payload={cliente_id:valor('di-cliente'),sku:valor('di-sku'),nombre:valor('di-nombre'),imagen_url:valor('di-imagen')||null};
+  if(!payload.cliente_id||!payload.sku||!payload.nombre){ alert('Cliente, SKU y nombre son obligatorios'); return; }
+  try{ const r=id?await supa.from('disenos').update(payload).eq('id',id):await supa.from('disenos').insert(payload); if(r.error) throw r.error; cerrarModal(); mostrarToast('✅ Diseño guardado'); await cargarDisenosCatalogo(); }
+  catch(e){ mostrarToast('❌ Error guardando diseño: '+e.message,'error'); }
+}
+
+async function eliminarDiseno(id){
+  if(!confirm('¿Eliminar este diseño? Si ya está ligado a pedidos, Supabase puede impedirlo.')) return;
+  try{ const {error}=await supa.from('disenos').delete().eq('id',id); if(error) throw error; mostrarToast('✅ Diseño eliminado'); await cargarDisenosCatalogo(); }
+  catch(e){ mostrarToast('❌ Error eliminando diseño: '+e.message,'error'); }
+}
+
+/* ===== CONTROL DE PAPEL ===== */
+async function renderControlPapel(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1200px;"><div class="toolbar-modulo"><div><h2>📄 Control de papel de impresión</h2><p>Registra rollos de papel y consumo por pedido.</p></div><button class="btn-primario-sm" id="btn-nuevo-rollo">+ Nuevo rollo</button></div><div class="grid-2col"><div class="tarjeta"><div class="tarjeta-titulo">Rollos activos</div><div id="rollos-papel-cont"><div class="cargando-centro"><span class="spinner"></span></div></div></div><div class="tarjeta"><div class="tarjeta-titulo">Registrar consumo</div><div id="consumo-papel-cont"><div class="cargando-centro"><span class="spinner"></span></div></div></div></div><div class="tarjeta" style="margin-top:16px;"><div class="tarjeta-titulo">Historial de consumo</div><div id="hist-papel-cont"><div class="cargando-centro"><span class="spinner"></span></div></div></div></div>`;
+  document.getElementById('btn-nuevo-rollo').addEventListener('click',()=>abrirFormularioRolloPapel());
+  await cargarControlPapel();
+}
+
+async function cargarControlPapel(){
+  try{ const {data}=await supa.from('rollos_papel').select('*').order('creado_en',{ascending:false}); estado.rollosPapel=data||[]; }catch(e){ estado.rollosPapel=[]; }
+  try{ const {data}=await supa.from('control_papel').select('*').order('creado_en',{ascending:false}).limit(80); estado.histPapel=data||[]; }catch(e){ estado.histPapel=[]; }
+  estado.pedidos=await cargarPedidosBasicos();
+  renderRollosPapel(); renderFormConsumoPapel(); renderHistorialPapel();
+}
+
+function renderRollosPapel(){
+  const cont=document.getElementById('rollos-papel-cont'); if(!cont) return;
+  const lista=estado.rollosPapel||[];
+  if(!lista.length){ cont.innerHTML='<div class="vacio">No hay rollos de papel registrados.</div>'; return; }
+  cont.innerHTML=lista.map(r=>{ const usados=parseFloat(r.metros_usados)||0,total=parseFloat(r.metros_totales)||0,pct=total?Math.min(100,Math.round(usados/total*100)):0; return `<div class="rollo-papel-card"><div class="rollo-papel-header"><h4>${escapar(r.numero_rollo)}</h4>${r.activo===false?'<span class="badge gris">Inactivo</span>':'<span class="badge verde">Activo</span>'}</div><div style="font-size:12px;color:var(--text-muted);">Ancho: <strong>${r.ancho_cm||'—'} cm</strong> · Usado: <strong>${usados}</strong> / ${total} m</div><div class="metros-bar"><div class="metros-bar-fill" style="width:${pct}%"></div></div><div class="acciones-tabla" style="margin-top:10px;"><button class="btn-secundario" onclick="abrirFormularioRolloPapel('${r.id}')">Editar</button><button class="btn-warning-sm" onclick="cerrarRolloPapel('${r.id}',${r.activo===false?'true':'false'})">${r.activo===false?'Reactivar':'Cerrar'}</button></div></div>`; }).join('');
+}
+
+function abrirFormularioRolloPapel(id){
+  const r=(estado.rollosPapel||[]).find(x=>String(x.id)===String(id))||{};
+  document.getElementById('modal-titulo').textContent=id?'Editar rollo de papel':'Nuevo rollo de papel';
+  document.getElementById('modal-body').innerHTML=`<form id="form-rollo-papel"><div class="form-inline-grid"><div class="form-grupo"><label>Número de rollo <span class="req">*</span></label><input type="text" id="rp-numero" value="${escapar(r.numero_rollo||'')}" required></div><div class="form-grupo"><label>Ancho cm</label><select id="rp-ancho"><option value="162" ${String(r.ancho_cm)==='162'?'selected':''}>162 cm</option><option value="182" ${String(r.ancho_cm)==='182'?'selected':''}>182 cm</option></select></div><div class="form-grupo"><label>Metros totales <span class="req">*</span></label><input type="number" id="rp-total" step="0.01" value="${r.metros_totales||''}" required></div><div class="form-grupo"><label>Metros usados</label><input type="number" id="rp-usados" step="0.01" value="${r.metros_usados||0}"></div></div><div class="acciones-finales"><button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button><button class="btn-success" type="submit">Guardar rollo</button></div></form>`;
+  document.getElementById('form-rollo-papel').addEventListener('submit',e=>guardarRolloPapel(e,id));
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+async function guardarRolloPapel(e,id){
+  e.preventDefault();
+  const payload={numero_rollo:valor('rp-numero'),ancho_cm:numero('rp-ancho'),metros_totales:numero('rp-total'),metros_usados:numero('rp-usados'),activo:true};
+  try{ const r=id?await supa.from('rollos_papel').update(payload).eq('id',id):await supa.from('rollos_papel').insert(payload); if(r.error) throw r.error; cerrarModal(); mostrarToast('✅ Rollo guardado'); await cargarControlPapel(); }
+  catch(e){ mostrarToast('❌ Error guardando rollo: '+e.message,'error'); }
+}
+
+async function cerrarRolloPapel(id,activo){
+  try{ const {error}=await supa.from('rollos_papel').update({activo}).eq('id',id); if(error) throw error; mostrarToast('✅ Rollo actualizado'); await cargarControlPapel(); }
+  catch(e){ mostrarToast('❌ Error: '+e.message,'error'); }
+}
+
+function renderFormConsumoPapel(){
+  const cont=document.getElementById('consumo-papel-cont'); if(!cont) return;
+  const rollos=(estado.rollosPapel||[]).filter(r=>r.activo!==false);
+  const pedidos=(estado.pedidos||[]).filter(p=>!['entregado','cancelado'].includes(p.estado));
+  cont.innerHTML=`<form id="form-consumo-papel"><div class="form-grupo"><label>Rollo de papel</label><select id="cp-rollo" required>${rollos.map(r=>`<option value="${r.id}">${escapar(r.numero_rollo)} · ${r.ancho_cm} cm</option>`).join('')}</select></div><div class="form-grupo" style="margin-top:10px;"><label>Pedido</label><select id="cp-pedido" required>${pedidos.map(p=>`<option value="${p.id}">${escapar(p.folio)} · ${escapar(p.tipo||'')}</option>`).join('')}</select></div><div class="form-grupo" style="margin-top:10px;"><label>Metros usados</label><input type="number" id="cp-metros" step="0.01" required></div><button class="btn-success" type="submit" style="margin-top:12px;width:100%;">Registrar consumo</button></form>`;
+  document.getElementById('form-consumo-papel').addEventListener('submit',guardarConsumoPapel);
+}
+
+async function guardarConsumoPapel(e){
+  e.preventDefault();
+  const rolloId=valor('cp-rollo'), pedidoId=valor('cp-pedido'), metros=numero('cp-metros');
+  if(!rolloId||!pedidoId||metros<=0){ alert('Completa rollo, pedido y metros'); return; }
+  try{
+    const rollo=(estado.rollosPapel||[]).find(r=>String(r.id)===String(rolloId));
+    const {error:e1}=await supa.from('control_papel').insert({rollo_papel_id:rolloId,pedido_id:pedidoId,metros_usados:metros}); if(e1) throw e1;
+    const nuevo=(parseFloat(rollo?.metros_usados)||0)+metros;
+    const {error:e2}=await supa.from('rollos_papel').update({metros_usados:nuevo}).eq('id',rolloId); if(e2) throw e2;
+    mostrarToast('✅ Consumo registrado'); await cargarControlPapel();
+  }catch(e){ mostrarToast('❌ Error registrando consumo: '+e.message,'error'); }
+}
+
+function renderHistorialPapel(){
+  const cont=document.getElementById('hist-papel-cont'); if(!cont) return;
+  const hist=estado.histPapel||[];
+  if(!hist.length){ cont.innerHTML='<div class="vacio">Sin movimientos de papel.</div>'; return; }
+  const rolloMap={}; (estado.rollosPapel||[]).forEach(r=>rolloMap[r.id]=r);
+  const pedidoMap={}; (estado.pedidos||[]).forEach(p=>pedidoMap[p.id]=p);
+  cont.innerHTML=`<div class="scroll-x"><table class="tabla"><thead><tr><th>Fecha</th><th>Rollo</th><th>Pedido</th><th>Metros</th></tr></thead><tbody>${hist.map(h=>`<tr><td>${fechaHoraMX(h.creado_en)}</td><td>${escapar(rolloMap[h.rollo_papel_id]?.numero_rollo||h.rollo_papel_id)}</td><td>${escapar(pedidoMap[h.pedido_id]?.folio||h.pedido_id)}</td><td><strong>${h.metros_usados} m</strong></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ===== SEGUIMIENTO Y REPORTES ===== */
+async function renderSeguimiento(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1200px;"><div class="toolbar-modulo"><div><h2>📋 Seguimiento</h2><p>Busca cualquier pedido por folio, cliente, estado o etapa.</p></div></div><div class="filtros-fila"><input type="text" id="seg-bus" placeholder="Buscar pedido..."></div><div class="tarjeta"><div id="seg-cont"><div class="cargando-centro"><span class="spinner"></span></div></div></div></div>`;
+  estado.pedidos=await cargarPedidosBasicos(); await asegurarClientesCargados();
+  document.getElementById('seg-bus').addEventListener('input',renderTablaSeguimiento);
+  renderTablaSeguimiento();
+}
+function renderTablaSeguimiento(){
+  const cont=document.getElementById('seg-cont'); if(!cont) return;
+  const q=(document.getElementById('seg-bus')?.value||'').toLowerCase();
+  const lista=(estado.pedidos||[]).filter(p=>{ const cli=nombreClientePorId(p.cliente_id); return [p.folio,p.tipo,cli,p.estado,p.etapa_actual].join(' ').toLowerCase().includes(q); });
+  if(!lista.length){ cont.innerHTML='<div class="vacio">Sin resultados.</div>'; return; }
+  cont.innerHTML=`<div class="scroll-x"><table class="tabla"><thead><tr><th>Folio</th><th>Cliente</th><th>Tipo</th><th>Etapa</th><th>Entrega</th><th>Estado</th></tr></thead><tbody>${lista.map(p=>`<tr class="clickable" onclick="abrirPanelPedido('${p.id}')"><td><strong style="color:var(--primary)">${escapar(p.folio)}</strong></td><td>${escapar(nombreClientePorId(p.cliente_id))}</td><td>${escapar(p.tipo||'—')}</td><td>${escapar(p.etapa_actual||'—')}</td><td>${formatearFechaCorta(p.fecha_comprometida)}</td><td>${badgeEstado(p.estado)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+async function renderReportes(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1200px;"><div class="toolbar-modulo"><div><h2>📈 Reportes básicos</h2><p>Resumen de pedidos por estado, tipo, cliente y fechas.</p></div></div><div id="reportes-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando reportes...</div></div></div>`;
+  estado.pedidos=await cargarPedidosBasicos(); await asegurarClientesCargados();
+  const total=estado.pedidos.length;
+  const activos=estado.pedidos.filter(p=>!['entregado','cancelado'].includes(p.estado)).length;
+  const vencidos=estado.pedidos.filter(p=>p.fecha_comprometida && diasRestantes(p.fecha_comprometida)<0 && !['entregado','cancelado'].includes(p.estado)).length;
+  const valorTotal=estado.pedidos.reduce((a,p)=>a+(parseFloat(p.precio_total)||0),0);
+  const porEstado=agruparConteo(estado.pedidos,'estado'), porTipo=agruparConteo(estado.pedidos,'tipo');
+  document.getElementById('reportes-cont').innerHTML=`<div class="kpi-grid"><div class="kpi-card"><div class="lbl">Pedidos totales</div><div class="num">${total}</div></div><div class="kpi-card"><div class="lbl">Activos</div><div class="num">${activos}</div></div><div class="kpi-card"><div class="lbl">Vencidos</div><div class="num" style="color:var(--danger)">${vencidos}</div></div><div class="kpi-card"><div class="lbl">Valor registrado</div><div class="num">${fmtMon(valorTotal)}</div></div></div><div class="grid-2col"><div class="tarjeta"><div class="tarjeta-titulo">Por estado</div>${tablaConteo(porEstado)}</div><div class="tarjeta"><div class="tarjeta-titulo">Por tipo</div>${tablaConteo(porTipo)}</div></div>`;
+}
+function agruparConteo(lista,campo){ const m={}; lista.forEach(x=>{ const k=x[campo]||'—'; m[k]=(m[k]||0)+1; }); return m; }
+function tablaConteo(obj){ const rows=Object.entries(obj).sort((a,b)=>b[1]-a[1]); if(!rows.length) return '<div class="vacio">Sin datos.</div>'; return `<table class="tabla"><tbody>${rows.map(([k,v])=>`<tr><td>${escapar(k)}</td><td><strong>${v}</strong></td></tr>`).join('')}</tbody></table>`; }
+
+/* ===== CONFIG CALANDRA ===== */
+async function renderConfigCalandra(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1000px;"><div class="toolbar-modulo"><div><h2>⚙️ Calandra por tela</h2><p>Velocidades de referencia por tipo de tela. Temperatura estándar: 205°C.</p></div><button class="btn-primario-sm" id="btn-cfg-cal">+ Nueva configuración</button></div><div class="tarjeta"><div id="cfg-cal-cont"><div class="cargando-centro"><span class="spinner"></span></div></div></div></div>`;
+  document.getElementById('btn-cfg-cal').addEventListener('click',()=>abrirFormCfgCalandra());
+  await cargarCfgCalandra();
+}
+async function cargarCfgCalandra(){
+  try{ const {data}=await supa.from('config_calandria').select('*').order('tela_tipo'); estado.cfgCalandra=data||[]; }catch(e){ estado.cfgCalandra=[]; }
+  const cont=document.getElementById('cfg-cal-cont'); if(!cont) return;
+  if(!estado.cfgCalandra.length){ cont.innerHTML='<div class="vacio">Sin configuraciones.</div>'; return; }
+  cont.innerHTML=`<table class="tabla"><thead><tr><th>Tela</th><th>Velocidad m/h</th><th>Notas</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${estado.cfgCalandra.map(c=>`<tr><td><strong>${escapar(c.tela_tipo)}</strong></td><td>${c.velocidad_mh||'—'}</td><td>${escapar(c.notas||'—')}</td><td>${c.activo===false?'<span class="badge gris">Inactivo</span>':'<span class="badge verde">Activo</span>'}</td><td><button class="btn-secundario" onclick="abrirFormCfgCalandra('${c.id}')">Editar</button></td></tr>`).join('')}</tbody></table>`;
+}
+function abrirFormCfgCalandra(id){
+  const c=(estado.cfgCalandra||[]).find(x=>String(x.id)===String(id))||{};
+  document.getElementById('modal-titulo').textContent=id?'Editar configuración':'Nueva configuración';
+  document.getElementById('modal-body').innerHTML=`<form id="form-cfg-cal"><div class="form-inline-grid"><div class="form-grupo"><label>Tipo de tela</label><input type="text" id="cc-tela" value="${escapar(c.tela_tipo||'')}" required></div><div class="form-grupo"><label>Velocidad m/h</label><input type="number" id="cc-vel" value="${c.velocidad_mh||220}" required></div><div class="form-grupo full"><label>Notas</label><textarea id="cc-notas">${escapar(c.notas||'')}</textarea></div></div><div class="acciones-finales"><button type="button" class="btn-secundario" onclick="cerrarModal()">Cancelar</button><button class="btn-success" type="submit">Guardar</button></div></form>`;
+  document.getElementById('form-cfg-cal').addEventListener('submit',async e=>{ e.preventDefault(); const payload={tela_tipo:valor('cc-tela'),velocidad_mh:numero('cc-vel'),notas:valor('cc-notas')||null,activo:true}; try{ const r=id?await supa.from('config_calandria').update(payload).eq('id',id):await supa.from('config_calandria').insert(payload); if(r.error) throw r.error; cerrarModal(); mostrarToast('✅ Configuración guardada'); await cargarCfgCalandra(); }catch(ex){ mostrarToast('❌ Error: '+ex.message,'error'); } });
+  document.getElementById('modal-overlay').classList.add('visible');
+}
+
+/* ===== DOCUMENTOS IMPRIMIBLES ===== */
+async function renderDocumentosImprimibles(){
+  const area=document.getElementById('area-modulo');
+  area.innerHTML=`<div style="max-width:1200px;"><div class="toolbar-modulo"><div><h2>🧾 Documentos imprimibles</h2><p>Genera nota de salida, nota de entrada, orden de confección y orden de corte.</p></div></div><div id="docs-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando pedidos...</div></div></div>`;
+  estado.pedidos=await cargarPedidosBasicos(); await asegurarClientesCargados();
+  const opciones=(estado.pedidos||[]).map(p=>`<option value="${p.id}">${escapar(p.folio)} · ${escapar(nombreClientePorId(p.cliente_id))} · ${escapar(p.tipo||'')}</option>`).join('');
+  document.getElementById('docs-cont').innerHTML=`<div class="doc-grid">${docCard('nota-salida','📤','Nota de salida','Documento para entrega de producto, tela o pedido terminado.',opciones)}${docCard('nota-entrada','📥','Nota de entrada','Documento para recepción de tela o material en almacén.',opciones)}${docCard('orden-confeccion','🧵','Orden de confección','Formato para maquilero con tallas, cantidades e insumos.',opciones)}${docCard('orden-corte','✂️','Orden de corte','Formato para corte con diseños, tallas y recepción.',opciones)}</div>`;
+}
+function docCard(id,ico,titulo,desc,opciones){ return `<div class="doc-card"><div class="ico">${ico}</div><h3>${titulo}</h3><p>${desc}</p><div class="selector-doc"><select id="sel-${id}">${opciones}</select><button class="btn-primario-sm" onclick="imprimirDocumento('${id}')">Imprimir</button></div></div>`; }
+async function imprimirDocumento(tipo){
+  const pedidoId=valor('sel-'+tipo); if(!pedidoId){ alert('Selecciona un pedido'); return; }
+  try{ const pack=await cargarPedidoCompleto(pedidoId); if(tipo==='nota-salida') imprimirNotaSalida(pack); if(tipo==='nota-entrada') imprimirNotaEntrada(pack); if(tipo==='orden-confeccion') imprimirOrdenConfeccion(pack); if(tipo==='orden-corte') imprimirOrdenCorte(pack); }
+  catch(e){ mostrarToast('❌ Error generando documento: '+e.message,'error'); }
+}
+function abrirPrint(titulo,body){ const w=window.open('','_blank'); w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>${escapar(titulo)}</title><style>body{font-family:Arial,sans-serif;margin:0;padding:20px;color:#111;font-size:12px}.enc{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:14px}.logo{font-weight:900;font-size:22px;color:#6366F1}.titulo{text-align:center;font-size:20px;font-weight:900}.folio{color:#B91C1C;font-size:20px;font-weight:900}table{width:100%;border-collapse:collapse;margin:10px 0 14px}th,td{border:1px solid #999;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f3f4f6;font-size:11px;text-transform:uppercase}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.campo label{font-size:10px;color:#666;text-transform:uppercase;display:block}.campo strong{font-size:12px}.firmas{display:flex;gap:35px;margin-top:38px}.firma{flex:1;border-top:1px solid #111;padding-top:5px;text-align:center;font-size:10px;color:#555}.totales{margin-left:auto;width:260px}.imgdoc{width:70px;height:70px;object-fit:cover}.muted{color:#666}.check{font-size:14px}h3{background:#EEF2FF;color:#4338CA;padding:6px 8px;margin:12px 0 8px;font-size:13px}@media print{body{padding:10px}}</style></head><body>${body}</body></html>`); w.document.close(); setTimeout(()=>w.print(),500); }
+function encabezadoDoc(nombre,folio){ return `<div class="enc"><div><div class="logo">IJ</div><div>Importaciones Juanita</div></div><div class="titulo">${nombre}</div><div style="text-align:right"><div class="folio">${folio}</div><div>${new Date().toLocaleDateString('es-MX')}</div></div></div>`; }
+function filasDisenos(pack){ return (pack.disenos||[]).map((d,i)=>`<tr><td>${i+1}</td><td>${d.imagen_url?`<img class="imgdoc" src="${escapar(d.imagen_url)}">`:'—'}</td><td>Diseño ${i+1}</td><td>${d.metros_solicitados||0}</td></tr>`).join('') || '<tr><td colspan="4">Sin diseños registrados</td></tr>'; }
+function imprimirNotaSalida(pack){ const p=pack.pedido,c=pack.cliente||{}; const total=fmtMon(p.precio_total); abrirPrint('Nota de salida '+p.folio,`${encabezadoDoc('NOTA DE SALIDA',p.folio)}<div class="grid"><div class="campo"><label>Facturar a</label><strong>${escapar(c.nombre||'—')}</strong></div><div class="campo"><label>Transporte</label><strong>Chofer / Paquetería / Recolección</strong></div><div class="campo"><label>Tela</label><strong>${escapar(p.tela_tipo||'—')} · ${p.tela_ancho||'—'} cm</strong></div><div class="campo"><label>Vendedor</label><strong>${escapar(estado.vendedoresMap?.[p.vendedor_id]?.nombre||'—')}</strong></div></div><table><thead><tr><th>Cant</th><th>U/M</th><th>Tela</th><th>Descripción</th><th>Precio</th><th>Importe</th></tr></thead><tbody><tr><td>${pack.rollos.length||1}</td><td>${escapar(p.unidad_medida||'pedido')}</td><td>${escapar(p.tela_tipo||'—')}</td><td>${escapar(p.observaciones||p.tipo||'Pedido')}</td><td>${total}</td><td>${total}</td></tr></tbody></table><table class="totales"><tr><th>Subtotal</th><td>${total}</td></tr><tr><th>Descuento</th><td>$0.00</td></tr><tr><th>Total</th><td><strong>${total}</strong></td></tr></table><div class="firmas"><div class="firma">Entregué conforme</div><div class="firma">Recibí conforme</div><div class="firma">Autorizado por</div></div>`); }
+function imprimirNotaEntrada(pack){ const p=pack.pedido,c=pack.cliente||{}; const rows=pack.rollos.length?pack.rollos.map(r=>`<tr><td>${r.metros_reales||''}</td><td>m</td><td></td><td></td><td>${r.ancho_cm||''}</td><td>${escapar(p.tela_tipo||'')}</td><td></td><td></td></tr>`).join(''):`<tr><td></td><td>${escapar(p.unidad_medida||'')}</td><td></td><td></td><td>${p.tela_ancho||''}</td><td>${escapar(p.tela_tipo||'')}</td><td></td><td></td></tr>`; abrirPrint('Nota de entrada '+p.folio,`${encabezadoDoc('ENTRADA',p.folio)}<div class="grid"><div class="campo"><label>Cliente / Proveedor</label><strong>${escapar(c.nombre||'—')}</strong></div><div class="campo"><label>Teléfono</label><strong>${escapar(c.telefono||'—')}</strong></div><div class="campo"><label>Dirección</label><strong>${escapar(c.direccion||'—')}</strong></div><div class="campo"><label>Tipo</label><strong><span class="check">☐</span> Compra &nbsp; <span class="check">☐</span> Devolución &nbsp; <span class="check">☐</span> Maquila</strong></div></div><table><thead><tr><th>Cantidad</th><th>UDM</th><th>PZS</th><th>Color</th><th>Ancho</th><th>Producto</th><th>Precio</th><th>Importe</th></tr></thead><tbody>${rows}</tbody></table><table class="totales"><tr><th>Subtotal</th><td></td></tr><tr><th>IVA 16%</th><td></td></tr><tr><th>Total</th><td></td></tr></table><div class="firmas"><div class="firma">Almacén</div><div class="firma">Cliente / Proveedor</div><div class="firma">Autorizado por</div></div>`); }
+function imprimirOrdenConfeccion(pack){ const p=pack.pedido,c=pack.cliente||{}; const porDis=(pack.disenos||[]).map((d,i)=>{ const tallas=pack.tallas.filter(t=>String(t.diseno_id)===String(d.id)); const map={}; tallas.forEach(t=>map[t.talla]=t.cantidad); const total=tallas.reduce((a,t)=>a+(parseInt(t.cantidad)||0),0); return `<tr><td>${d.imagen_url?`<img class="imgdoc" src="${escapar(d.imagen_url)}">`:'—'}</td><td>Diseño ${i+1}</td>${TALLAS_SISTEMA.map(t=>`<td>${map[t]||''}</td>`).join('')}<td><strong>${total}</strong></td></tr>`; }).join('') || `<tr><td colspan="${TALLAS_SISTEMA.length+3}">Sin tallas registradas</td></tr>`; abrirPrint('Orden de confección '+p.folio,`${encabezadoDoc('ORDEN DE CONFECCIÓN',p.folio)}<div class="grid"><div class="campo"><label>Cliente</label><strong>${escapar(c.nombre||'—')}</strong></div><div class="campo"><label>Maquilero</label><strong>________________________</strong></div><div class="campo"><label>Tela</label><strong>${escapar(p.tela_tipo||'—')}</strong></div><div class="campo"><label>Fecha entrega</label><strong>${formatearFechaCorta(p.fecha_comprometida)}</strong></div></div><table><thead><tr><th>Imagen</th><th>SKU / Diseño</th>${TALLAS_SISTEMA.map(t=>`<th>${t}</th>`).join('')}<th>Total</th></tr></thead><tbody>${porDis}</tbody></table><h3>Entrega de insumos</h3><table><thead><tr><th>Insumo</th><th>Cantidad</th><th>Recibió</th></tr></thead><tbody><tr><td>Hilo</td><td></td><td></td></tr><tr><td>Resorte</td><td></td><td></td></tr><tr><td>Etiqueta</td><td></td><td></td></tr><tr><td>Bolsa / empaque</td><td></td><td></td></tr></tbody></table><div class="grid"><div class="campo"><label>Precio acordado</label><strong>________________</strong></div><div class="campo"><label>Observaciones</label><strong>${escapar(p.observaciones||'')}</strong></div></div><div class="firmas"><div class="firma">Entregué insumos</div><div class="firma">Recibí insumos</div><div class="firma">Autorizado por</div></div>`); }
+function imprimirOrdenCorte(pack){ const p=pack.pedido,c=pack.cliente||{}; const totalTallas=pack.tallas.reduce((a,t)=>a+(parseInt(t.cantidad)||0),0); abrirPrint('Orden de corte '+p.folio,`${encabezadoDoc('ORDEN DE CORTE',p.folio)}<div class="grid"><div class="campo"><label>Cliente</label><strong>${escapar(c.nombre||'—')}</strong></div><div class="campo"><label>Cortador</label><strong>________________________</strong></div><div class="campo"><label>Tela</label><strong>${escapar(p.tela_tipo||'—')} · ${p.tela_ancho||'—'} cm</strong></div><div class="campo"><label>Capas / largo de capa</label><strong>________________________</strong></div></div><table><thead><tr><th>#</th><th>Imagen</th><th>Código diseño</th><th>Metros</th></tr></thead><tbody>${filasDisenos(pack)}</tbody></table><h3>Totales de corte</h3><table><thead><tr>${TALLAS_SISTEMA.map(t=>`<th>${t}</th>`).join('')}<th>Gran total</th></tr></thead><tbody><tr>${TALLAS_SISTEMA.map(t=>`<td>${pack.tallas.filter(x=>x.talla===t).reduce((a,x)=>a+(parseInt(x.cantidad)||0),0)||''}</td>`).join('')}<td><strong>${totalTallas}</strong></td></tr></tbody></table><h3>Recepción de corte</h3><table><thead><tr><th>Talla</th><th>Cortado</th><th>Recibido</th><th>Diferencia</th><th>Observaciones</th></tr></thead><tbody>${TALLAS_SISTEMA.map(t=>`<tr><td>${t}</td><td></td><td></td><td></td><td></td></tr>`).join('')}</tbody></table><div class="firmas"><div class="firma">Cortó</div><div class="firma">Recibió</div><div class="firma">Autorizado por</div></div>`); }
+
 
 /* ============================================
    INIT
