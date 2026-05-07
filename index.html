@@ -820,28 +820,7 @@ function actualizarBadge() {
   }
 }
 
-function cambiarModulo(id) {
-  estado.moduloActivo = id;
-  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.toggle('activo', el.dataset.mod === id));
-  document.getElementById('header-titulo').textContent = TITULOS[id] || id;
-  document.getElementById('sidebar').classList.remove('abierto');
-  const area = document.getElementById('area-modulo');
-  const modulos = {
-    'dashboard':       renderDashboard,
-    'nuevo-pedido':    renderNuevoPedido,
-    'todos-pedidos':   renderTodosPedidos,
-    'historial':       renderHistorial,
-    'almacen-entrada': () => renderVistaProduccion('almacen-entrada'),
-    'impresion':       () => renderVistaProduccion('impresion'),
-    'calandra':        () => renderVistaProduccion('calandra'),
-    'corte-planeacion':() => renderVistaProduccion('corte-planeacion'),
-    'costura':         () => renderVistaProduccion('costura'),
-    'maquila':         () => renderVistaProduccion('maquila'),
-    'almacen-salida':  () => renderVistaProduccion('almacen-salida'),
-  };
-  if (modulos[id]) modulos[id]();
-  else renderPlaceholder(id);
-}
+/* cambiarModulo definida en Bloque 4 */
 
 function renderPlaceholder(id) {
   document.getElementById('area-modulo').innerHTML = `
@@ -1074,92 +1053,7 @@ async function rechazarPedido(id) {
 /* ============================================
    PANEL LATERAL DETALLE PEDIDO
    ============================================ */
-async function abrirPanelPedido(idPedido) {
-  const p = estado.pedidos.find(x => String(x.id) === String(idPedido));
-  if (!p) return;
-  const cli = estado.clientes.find(c => c.id === p.cliente_id);
-  document.getElementById('panel-titulo').textContent = 'Pedido ' + p.folio;
-  const body = document.getElementById('panel-body');
-  body.innerHTML = '<div class="cargando-centro"><span class="spinner"></span> Cargando...</div>';
-  document.getElementById('panel-overlay').classList.add('visible');
-  document.getElementById('panel-lateral').classList.add('visible');
-
-  let disenos = [], tallas = [], etapas = [];
-  try { const { data } = await supa.from('pedido_disenos').select('*').eq('pedido_id', p.id).order('orden'); disenos = data || []; } catch(e) {}
-  try { const { data } = await supa.from('pedido_tallas_v2').select('*').eq('pedido_id', p.id); tallas = data || []; } catch(e) {}
-  try { const { data } = await supa.from('etapas_pedido').select('*').eq('pedido_id', p.id).order('completado_en'); etapas = data || []; } catch(e) {}
-
-  const rutaEtapas = obtenerRutaEtapas(p.tipo);
-  const etapaIdx = rutaEtapas.indexOf(p.etapa_actual);
-
-  let barraHtml = '<div style="margin:12px 0 6px 0;"><div class="barra-etapas">';
-  rutaEtapas.forEach((et, i) => {
-    let cls = '';
-    if (etapaIdx > i) cls = 'completa';
-    else if (etapaIdx === i) cls = 'actual';
-    barraHtml += `<div class="et ${cls}" title="${et}"></div>`;
-  });
-  barraHtml += '</div>';
-  barraHtml += `<div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:4px;">📍 ${p.etapa_actual || '—'}</div></div>`;
-
-  let disenHtml = '';
-  if (disenos.length) {
-    disenHtml = '<div class="campo"><label>Diseños</label>';
-    disenos.forEach((d, i) => {
-      const tDiseno = tallas.filter(t => t.diseno_id === d.id);
-      disenHtml += `<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:8px;">
-        <div style="font-weight:600;margin-bottom:6px;">Diseño #${i+1} · ${d.metros_solicitados||0} m</div>`;
-      if (d.imagen_url) disenHtml += `<img class="preview-img" src="${escapar(d.imagen_url)}" onerror="this.style.display='none'" />`;
-      if (tDiseno.length) {
-        disenHtml += '<div style="margin-top:6px;font-size:12px;">';
-        tDiseno.forEach(t => disenHtml += `<span style="display:inline-block;margin:2px 6px 2px 0"><strong>${t.talla}:</strong> ${t.cantidad}</span>`);
-        disenHtml += '</div>';
-      }
-      disenHtml += '</div>';
-    });
-    disenHtml += '</div>';
-  }
-
-  let etapasHtml = '';
-  if (etapas.length) {
-    etapasHtml = '<div class="campo"><label>Historial de etapas</label>';
-    etapas.forEach(et => {
-      const datos = et.datos_json || {};
-      etapasHtml += `<div style="border-left:3px solid var(--success);padding:6px 10px;margin-top:6px;background:#F0FDF4;border-radius:0 6px 6px 0;">
-        <div style="font-weight:600;font-size:12px;">✅ ${et.etapa}</div>
-        <div style="font-size:11px;color:var(--text-muted)">${new Date(et.completado_en).toLocaleDateString('es-MX')}</div>
-        ${Object.keys(datos).length ? '<div style="font-size:11px;margin-top:4px;color:var(--text-muted);">' + Object.entries(datos).map(([k,v]) => `${k}: <strong>${v}</strong>`).join(' · ') + '</div>' : ''}
-      </div>`;
-    });
-    etapasHtml += '</div>';
-  }
-
-  const puedeAprobar = p.estado === 'pendiente' && esDirector();
-
-  body.innerHTML = `
-    ${barraHtml}
-    <div class="campo"><label>Folio</label><div class="valor">${escapar(p.folio)}</div></div>
-    <div class="campo"><label>Tipo</label><div class="valor"><span class="badge tipo-${(p.tipo||'').toLowerCase()}">${p.tipo||'—'}</span></div></div>
-    <div class="campo"><label>Cliente</label><div class="valor">${escapar(cli?.nombre||'—')}</div></div>
-    <div class="campo"><label>Etapa actual</label><div class="valor">${escapar(p.etapa_actual||'—')}</div></div>
-    <div class="campo"><label>Estado</label><div class="valor">${badgeEstado(p.estado)}</div></div>
-    <div class="campo"><label>Fecha comprometida</label><div class="valor">${formatearFechaCorta(p.fecha_comprometida)} ${pillDias(diasRestantes(p.fecha_comprometida))}</div></div>
-    <div class="campo"><label>Precio total</label><div class="valor">${p.precio_total != null ? '$' + Number(p.precio_total).toLocaleString('es-MX', {minimumFractionDigits:2}) : '—'}</div></div>
-    <div class="campo"><label>Observaciones</label><div class="valor">${escapar(p.observaciones||'—')}</div></div>
-    ${disenHtml}
-    ${etapasHtml}
-    ${puedeAprobar ? `<button class="btn-success" style="width:100%;margin-top:14px;" id="pn-aprobar">✅ Aprobar pedido</button>` : ''}
-    <button class="btn-secundario" style="width:100%;margin-top:8px;" onclick="imprimirHojaViajera('${p.id}')">🖨️ Imprimir hoja viajera</button>
-  `;
-
-  document.getElementById('pn-aprobar')?.addEventListener('click', async () => {
-    if (!confirm('¿Aprobar?')) return;
-    try {
-      await supa.from('pedidos').update({ estado: 'en_produccion', etapa_actual: 'Almacen Entrada' }).eq('id', p.id);
-      cerrarPanel(); mostrarToast('✅ Pedido aprobado'); await cargarDashboard();
-    } catch(e) { alert(e.message); }
-  });
-}
+/* abrirPanelPedido definida en Bloque 4 */
 
 function cerrarPanel() {
   document.getElementById('panel-overlay').classList.remove('visible');
@@ -2721,15 +2615,13 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
-</script>
-</body>
-</html>
+
 /* ============================================
    BLOQUE 4 — MÓDULOS ADICIONALES
    Clientes, Usuarios, Diseños, Control Papel,
    Documentos imprimibles
    ============================================ */
- 
+
 /* ============================================
    MÓDULO CLIENTES
    ============================================ */
@@ -2751,14 +2643,14 @@ async function renderClientes() {
         <div id="clientes-tabla-cont"><div class="cargando-centro"><span class="spinner"></span> Cargando...</div></div>
       </div>
     </div>`;
- 
+
   document.getElementById('btn-nuevo-cliente-mod').addEventListener('click', () => abrirFormCliente(null));
   document.getElementById('cli-bus').addEventListener('input', e => filtrarClientes(e.target.value));
   await cargarClientes();
 }
- 
+
 let _todosClientes = [];
- 
+
 async function cargarClientes() {
   try {
     const { data, error } = await supa.from('clientes').select('id,nombre,telefono,email,direccion,activo,creado_en').order('nombre');
@@ -2769,7 +2661,7 @@ async function cargarClientes() {
     document.getElementById('clientes-tabla-cont').innerHTML = `<div class="vacio">Error cargando clientes: ${e.message}</div>`;
   }
 }
- 
+
 function filtrarClientes(busqueda) {
   const b = busqueda.toLowerCase();
   const filtrados = _todosClientes.filter(c =>
@@ -2779,7 +2671,7 @@ function filtrarClientes(busqueda) {
   );
   renderTablaClientes(filtrados);
 }
- 
+
 function renderTablaClientes(clientes) {
   const cont = document.getElementById('clientes-tabla-cont');
   if (!clientes.length) { cont.innerHTML = '<div class="vacio">No hay clientes registrados.</div>'; return; }
@@ -2803,7 +2695,7 @@ function renderTablaClientes(clientes) {
   cont.querySelectorAll('[data-edit-cli]').forEach(b => b.addEventListener('click', () => abrirFormCliente(b.dataset.editCli)));
   cont.querySelectorAll('[data-hist-cli]').forEach(b => b.addEventListener('click', () => verPedidosCliente(b.dataset.histCli)));
 }
- 
+
 function abrirFormCliente(id) {
   const cliente = id ? _todosClientes.find(c => String(c.id) === String(id)) : null;
   document.getElementById('modal-titulo').textContent = cliente ? 'Editar cliente' : 'Nuevo cliente';
@@ -2830,7 +2722,7 @@ function abrirFormCliente(id) {
   document.getElementById('modal-overlay').classList.add('visible');
   document.getElementById('fc-guar').addEventListener('click', () => guardarCliente(id));
 }
- 
+
 async function guardarCliente(id) {
   const nombre = document.getElementById('fc-nombre').value.trim();
   if (!nombre) { alert('El nombre es obligatorio'); return; }
@@ -2857,7 +2749,7 @@ async function guardarCliente(id) {
     await cargarClientes();
   } catch(e) { alert('Error: ' + e.message); }
 }
- 
+
 async function verPedidosCliente(clienteId) {
   const cli = _todosClientes.find(c => String(c.id) === String(clienteId));
   document.getElementById('modal-titulo').textContent = `Pedidos de ${cli?.nombre||'cliente'}`;
@@ -2881,7 +2773,7 @@ async function verPedidosCliente(clienteId) {
     document.getElementById('modal-body').innerHTML = html + '</tbody></table>';
   } catch(e) { document.getElementById('modal-body').innerHTML = `<div class="vacio">Error: ${e.message}</div>`; }
 }
- 
+
 /* ============================================
    MÓDULO USUARIOS
    ============================================ */
@@ -2903,9 +2795,9 @@ async function renderUsuarios() {
   document.getElementById('btn-nuevo-usuario').addEventListener('click', () => abrirFormUsuario(null));
   await cargarUsuarios();
 }
- 
+
 let _todosUsuarios = [];
- 
+
 async function cargarUsuarios() {
   try {
     const { data, error } = await supa.from('usuarios').select('id,email,nombre,rol,activo,creado_en').order('nombre');
@@ -2916,14 +2808,14 @@ async function cargarUsuarios() {
     document.getElementById('usuarios-tabla-cont').innerHTML = `<div class="vacio">Error: ${e.message}</div>`;
   }
 }
- 
+
 const ROLES_DISPONIBLES = ['director','vendedor','impresor','calandra','corte','costura','almacen','chofer'];
 const ROLES_LABELS = {
   'director':'Director','vendedor':'Vendedor','impresor':'Impresor',
   'calandra':'Calandra','corte':'Corte','costura':'Costura',
   'almacen':'Almacén','chofer':'Chofer'
 };
- 
+
 function renderTablaUsuarios() {
   const cont = document.getElementById('usuarios-tabla-cont');
   if (!_todosUsuarios.length) { cont.innerHTML = '<div class="vacio">No hay usuarios registrados.</div>'; return; }
@@ -2943,7 +2835,7 @@ function renderTablaUsuarios() {
   cont.innerHTML = html;
   cont.querySelectorAll('[data-edit-usr]').forEach(b => b.addEventListener('click', () => abrirFormUsuario(b.dataset.editUsr)));
 }
- 
+
 function abrirFormUsuario(id) {
   const usr = id ? _todosUsuarios.find(u => String(u.id) === String(id)) : null;
   const opcRoles = ROLES_DISPONIBLES.map(r => `<option value="${r}" ${usr?.rol===r?'selected':''}>${ROLES_LABELS[r]}</option>`).join('');
@@ -2974,7 +2866,7 @@ function abrirFormUsuario(id) {
   document.getElementById('modal-overlay').classList.add('visible');
   document.getElementById('fu-guar').addEventListener('click', () => guardarUsuario(id));
 }
- 
+
 async function guardarUsuario(id) {
   const nombre = document.getElementById('fu-nombre').value.trim();
   const rol = document.getElementById('fu-rol').value;
@@ -2998,7 +2890,7 @@ async function guardarUsuario(id) {
     await cargarUsuarios();
   } catch(e) { alert('Error: ' + e.message); }
 }
- 
+
 /* ============================================
    CATÁLOGO DE DISEÑOS
    ============================================ */
@@ -3019,16 +2911,16 @@ async function renderDisenos() {
       </div>
       <div id="disenos-grid-cont"><div class="cargando-centro"><span class="spinner"></span></div></div>
     </div>`;
- 
+
   document.getElementById('btn-nuevo-diseno').addEventListener('click', () => abrirFormDiseno(null));
   document.getElementById('dis-bus').addEventListener('input', e => filtrarDisenos());
   document.getElementById('dis-cli-fil').addEventListener('change', () => filtrarDisenos());
- 
+
   await Promise.all([cargarDisenosCatalogo(), cargarClientesParaFiltro()]);
 }
- 
+
 let _todosDisenos = [];
- 
+
 async function cargarClientesParaFiltro() {
   try {
     if (!_todosClientes.length) {
@@ -3045,7 +2937,7 @@ async function cargarClientesParaFiltro() {
     }
   } catch(e) {}
 }
- 
+
 async function cargarDisenosCatalogo() {
   try {
     const { data, error } = await supa.from('disenos').select('id,sku,nombre,cliente_id,imagen_url,creado_en').order('sku');
@@ -3056,7 +2948,7 @@ async function cargarDisenosCatalogo() {
     document.getElementById('disenos-grid-cont').innerHTML = `<div class="vacio">Error: ${e.message}</div>`;
   }
 }
- 
+
 function filtrarDisenos() {
   const bus = (document.getElementById('dis-bus')?.value||'').toLowerCase();
   const cliId = document.getElementById('dis-cli-fil')?.value||'';
@@ -3067,13 +2959,13 @@ function filtrarDisenos() {
   });
   renderGridDisenos(filtrados);
 }
- 
+
 function renderGridDisenos(disenos) {
   const cont = document.getElementById('disenos-grid-cont');
   if (!disenos.length) { cont.innerHTML = '<div class="vacio">No hay diseños registrados.</div>'; return; }
   const mapaCli = {};
   _todosClientes.forEach(c => mapaCli[c.id] = c);
- 
+
   // Agrupar por cliente
   const porCliente = {};
   disenos.forEach(d => {
@@ -3081,7 +2973,7 @@ function renderGridDisenos(disenos) {
     if (!porCliente[key]) porCliente[key] = [];
     porCliente[key].push(d);
   });
- 
+
   let html = '';
   Object.entries(porCliente).forEach(([cliId, dises]) => {
     const cli = mapaCli[cliId];
@@ -3108,7 +3000,7 @@ function renderGridDisenos(disenos) {
   cont.innerHTML = html;
   cont.querySelectorAll('[data-edit-dis]').forEach(el => el.addEventListener('click', () => abrirFormDiseno(el.dataset.editDis)));
 }
- 
+
 function generarSkuDiseno(clienteId) {
   const cli = _todosClientes.find(c => String(c.id) === String(clienteId));
   if (!cli) return 'XX-001';
@@ -3117,7 +3009,7 @@ function generarSkuDiseno(clienteId) {
   const consec = (_todosDisenos.length + 1).toString().padStart(3,'0');
   return `${iniciales}-${consec}`;
 }
- 
+
 function abrirFormDiseno(id) {
   const dis = id ? _todosDisenos.find(d => String(d.id) === String(id)) : null;
   const opcCli = ['<option value="">Selecciona cliente...</option>']
@@ -3143,7 +3035,7 @@ function abrirFormDiseno(id) {
       <button class="btn-success" id="fd-guar">Guardar</button>
     </div>`;
   document.getElementById('modal-overlay').classList.add('visible');
- 
+
   document.getElementById('fd-cli').addEventListener('change', e => {
     const sku = document.getElementById('fd-sku');
     if (sku && !dis) sku.value = generarSkuDiseno(e.target.value);
@@ -3154,7 +3046,7 @@ function abrirFormDiseno(id) {
   });
   document.getElementById('fd-guar').addEventListener('click', () => guardarDiseno(id));
 }
- 
+
 async function guardarDiseno(id) {
   const cliente_id = document.getElementById('fd-cli').value;
   if (!cliente_id) { alert('Selecciona un cliente'); return; }
@@ -3179,7 +3071,7 @@ async function guardarDiseno(id) {
     await cargarDisenosCatalogo();
   } catch(e) { alert('Error: ' + e.message); }
 }
- 
+
 /* ============================================
    CONTROL DE PAPEL DE IMPRESIÓN
    ============================================ */
@@ -3197,9 +3089,9 @@ async function renderControlPapel() {
   document.getElementById('btn-nuevo-rollo-papel').addEventListener('click', abrirFormNuevoRollo);
   await cargarRollosPapel();
 }
- 
+
 let _rollosPapel = [];
- 
+
 async function cargarRollosPapel() {
   try {
     const { data, error } = await supa.from('rollos_papel').select('id,numero_rollo,ancho_cm,metros_totales,metros_usados,activo,creado_en').order('creado_en', { ascending: false });
@@ -3210,21 +3102,21 @@ async function cargarRollosPapel() {
     document.getElementById('rollos-papel-cont').innerHTML = `<div class="vacio">Error: ${e.message}</div>`;
   }
 }
- 
+
 async function renderRollosPapel() {
   const cont = document.getElementById('rollos-papel-cont');
   if (!_rollosPapel.length) { cont.innerHTML = '<div class="vacio">No hay rollos de papel registrados.</div>'; return; }
- 
+
   // Cargar uso de cada rollo
   let controlData = [];
   try {
     const { data } = await supa.from('control_papel').select('id,rollo_papel_id,pedido_id,metros_usados,creado_en').order('creado_en');
     controlData = data || [];
   } catch(e) {}
- 
+
   const mapaPedidos = {};
   estado.pedidos.forEach(p => mapaPedidos[p.id] = p);
- 
+
   let html = '<div style="display:flex;flex-direction:column;gap:14px;">';
   _rollosPapel.forEach(r => {
     const uso = controlData.filter(c => String(c.rollo_papel_id) === String(r.id));
@@ -3260,7 +3152,7 @@ async function renderRollosPapel() {
   });
   html += '</div>';
   cont.innerHTML = html;
- 
+
   cont.querySelectorAll('[data-add-uso]').forEach(b => b.addEventListener('click', () => abrirFormUsoRollo(b.dataset.addUso)));
   cont.querySelectorAll('[data-agotar]').forEach(b => b.addEventListener('click', async () => {
     if (confirm('¿Marcar este rollo como agotado?')) {
@@ -3269,7 +3161,7 @@ async function renderRollosPapel() {
     }
   }));
 }
- 
+
 function abrirFormNuevoRollo() {
   document.getElementById('modal-titulo').textContent = 'Nuevo rollo de papel';
   document.getElementById('modal-body').innerHTML = `
@@ -3302,7 +3194,7 @@ function abrirFormNuevoRollo() {
     } catch(e) { alert('Error: '+e.message); }
   });
 }
- 
+
 function abrirFormUsoRollo(rolloPapelId) {
   const rollo = _rollosPapel.find(r => String(r.id) === String(rolloPapelId));
   const pedidosImpresion = estado.pedidos.filter(p => p.etapa_actual === 'Impresión' || p.estado === 'en_produccion');
@@ -3334,7 +3226,8 @@ function abrirFormUsoRollo(rolloPapelId) {
     } catch(e) { alert('Error: '+e.message); }
   });
 }
- /* ============================================
+
+/* ============================================
    DOCUMENTOS IMPRIMIBLES
    ============================================ */
 
@@ -3730,7 +3623,6 @@ async function imprimirOrdenCorte(pedidoId) {
    ============================================ */
 
 // Guardar referencia al cambiarModulo original
-const _cambiarModuloOriginal = cambiarModulo;
 
 // Sobrescribir cambiarModulo para incluir nuevos módulos
 function cambiarModulo(id) {
@@ -4082,10 +3974,88 @@ function abrirFormFicha(idx) {
    AGREGAR BOTONES DE IMPRESIÓN EN VISTAS
    ============================================ */
 
-// Extender el panel lateral para incluir botones de impresión adicionales
-const _abrirPanelPedidoOriginal = abrirPanelPedido;
+// Sobrescribir abrirPanelPedido para incluir botones de impresión
 async function abrirPanelPedido(idPedido) {
-  await _abrirPanelPedidoOriginal(idPedido);
+  const p_ref = estado.pedidos.find(x => String(x.id) === String(idPedido));
+  if (!p_ref) return;
+  const cli_ref = estado.clientes.find(c => c.id === p_ref.cliente_id);
+  document.getElementById('panel-titulo').textContent = 'Pedido ' + p_ref.folio;
+  const body_ref = document.getElementById('panel-body');
+  body_ref.innerHTML = '<div class="cargando-centro"><span class="spinner"></span> Cargando...</div>';
+  document.getElementById('panel-overlay').classList.add('visible');
+  document.getElementById('panel-lateral').classList.add('visible');
+
+  let disenos_ref = [], tallas_ref = [], etapas_ref = [];
+  try { const { data } = await supa.from('pedido_disenos').select('*').eq('pedido_id', p_ref.id).order('orden'); disenos_ref = data || []; } catch(e) {}
+  try { const { data } = await supa.from('pedido_tallas_v2').select('*').eq('pedido_id', p_ref.id); tallas_ref = data || []; } catch(e) {}
+  try { const { data } = await supa.from('etapas_pedido').select('*').eq('pedido_id', p_ref.id).order('completado_en'); etapas_ref = data || []; } catch(e) {}
+
+  const rutaEtapas_ref = obtenerRutaEtapas(p_ref.tipo);
+  const etapaIdx_ref = rutaEtapas_ref.indexOf(p_ref.etapa_actual);
+  let barraHtml_ref = '<div style="margin:12px 0 6px 0;"><div class="barra-etapas">';
+  rutaEtapas_ref.forEach((et, i) => {
+    let cls = '';
+    if (etapaIdx_ref > i) cls = 'completa';
+    else if (etapaIdx_ref === i) cls = 'actual';
+    barraHtml_ref += `<div class="et ${cls}" title="${et}"></div>`;
+  });
+  barraHtml_ref += '</div>';
+  barraHtml_ref += `<div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:4px;">📍 ${p_ref.etapa_actual || '—'}</div></div>`;
+
+  let disenHtml_ref = '';
+  if (disenos_ref.length) {
+    disenHtml_ref = '<div class="campo"><label>Diseños</label>';
+    disenos_ref.forEach((d, i) => {
+      const tDis = tallas_ref.filter(t => t.diseno_id === d.id);
+      disenHtml_ref += `<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:8px;"><div style="font-weight:600;margin-bottom:6px;">Diseño #${i+1} · ${d.metros_solicitados||0} m</div>`;
+      if (d.imagen_url) disenHtml_ref += `<img class="preview-img" src="${escapar(d.imagen_url)}" onerror="this.style.display='none'" />`;
+      if (tDis.length) { disenHtml_ref += '<div style="margin-top:6px;font-size:12px;">'; tDis.forEach(t => disenHtml_ref += `<span style="display:inline-block;margin:2px 6px 2px 0"><strong>${t.talla}:</strong> ${t.cantidad}</span>`); disenHtml_ref += '</div>'; }
+      disenHtml_ref += '</div>';
+    });
+    disenHtml_ref += '</div>';
+  }
+
+  let etapasHtml_ref = '';
+  if (etapas_ref.length) {
+    etapasHtml_ref = '<div class="campo"><label>Historial de etapas</label>';
+    etapas_ref.forEach(et => {
+      const datos = et.datos_json || {};
+      etapasHtml_ref += `<div style="border-left:3px solid var(--success);padding:6px 10px;margin-top:6px;background:#F0FDF4;border-radius:0 6px 6px 0;"><div style="font-weight:600;font-size:12px;">✅ ${et.etapa}</div><div style="font-size:11px;color:var(--text-muted)">${new Date(et.completado_en).toLocaleDateString('es-MX')}</div>${Object.keys(datos).length ? '<div style="font-size:11px;margin-top:4px;color:var(--text-muted);">' + Object.entries(datos).map(([k,v]) => `${k}: <strong>${v}</strong>`).join(' · ') + '</div>' : ''}</div>`;
+    });
+    etapasHtml_ref += '</div>';
+  }
+
+  const puedeAprobar_ref = p_ref.estado === 'pendiente' && esDirector();
+  body_ref.innerHTML = `
+    ${barraHtml_ref}
+    <div class="campo"><label>Folio</label><div class="valor">${escapar(p_ref.folio)}</div></div>
+    <div class="campo"><label>Tipo</label><div class="valor"><span class="badge tipo-${(p_ref.tipo||'').toLowerCase()}">${p_ref.tipo||'—'}</span></div></div>
+    <div class="campo"><label>Cliente</label><div class="valor">${escapar(cli_ref?.nombre||'—')}</div></div>
+    <div class="campo"><label>Etapa actual</label><div class="valor">${escapar(p_ref.etapa_actual||'—')}</div></div>
+    <div class="campo"><label>Estado</label><div class="valor">${badgeEstado(p_ref.estado)}</div></div>
+    <div class="campo"><label>Fecha comprometida</label><div class="valor">${formatearFechaCorta(p_ref.fecha_comprometida)} ${pillDias(diasRestantes(p_ref.fecha_comprometida))}</div></div>
+    <div class="campo"><label>Precio total</label><div class="valor">${p_ref.precio_total != null ? '$' + Number(p_ref.precio_total).toLocaleString('es-MX', {minimumFractionDigits:2}) : '—'}</div></div>
+    <div class="campo"><label>Observaciones</label><div class="valor">${escapar(p_ref.observaciones||'—')}</div></div>
+    ${disenHtml_ref}
+    ${etapasHtml_ref}
+    ${puedeAprobar_ref ? `<button class="btn-success" style="width:100%;margin-top:14px;" id="pn-aprobar">✅ Aprobar pedido</button>` : ''}
+    <button class="btn-secundario" style="width:100%;margin-top:8px;" onclick="imprimirHojaViajera('${p_ref.id}')">🖨️ Imprimir hoja viajera</button>
+  `;
+
+  document.getElementById('pn-aprobar')?.addEventListener('click', async () => {
+    if (!confirm('¿Aprobar?')) return;
+    try { await supa.from('pedidos').update({ estado: 'en_produccion', etapa_actual: 'Almacen Entrada' }).eq('id', p_ref.id); cerrarPanel(); mostrarToast('✅ Pedido aprobado'); await cargarDashboard(); } catch(e) { alert(e.message); }
+  });
+
+  // Botones extra de impresión
+  const divBotones = document.createElement('div');
+  divBotones.style.cssText = 'margin-top:12px;display:flex;flex-direction:column;gap:6px;';
+  if (['SUB','PTS','MUE'].includes(p_ref.tipo)) divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirNotaSalida('${p_ref.id}')" style="font-size:12px;">🧾 Nota de salida</button>`;
+  if (p_ref.tipo === 'PTS') {
+    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirOrdenConfeccion('${p_ref.id}')" style="font-size:12px;">📋 Orden de confección</button>`;
+    divBotones.innerHTML += `<button class="btn-secundario" onclick="imprimirOrdenCorte('${p_ref.id}')" style="font-size:12px;">✂️ Orden de corte</button>`;
+  }
+  body_ref.appendChild(divBotones);
   // Agregar botones extra de impresión al panel
   const body = document.getElementById('panel-body');
   if (!body) return;
@@ -4121,3 +4091,7 @@ Object.assign(TITULOS, {
 
 // Auto-inicializar nuevos módulos en el sidebar
 console.log('✅ Bloque 4 cargado: Clientes, Usuarios, Diseños, Control Papel, Documentos imprimibles');
+
+</script>
+</body>
+</html>
